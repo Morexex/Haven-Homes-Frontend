@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import tenantRoutes from '@/modules/tenants/routes';
+import propertyRoutes from '@/modules/property/routes';
 import dashboardRoutes from '@/modules/dashboard/routes';
 import DefaultLayout from '@/components/layout/DefaultLayout.vue';
 
@@ -13,6 +14,7 @@ const routes = [
       { path: '', name: 'home', component: HomeView },
       ...tenantRoutes,   // Tenant routes will inherit DefaultLayout
       ...dashboardRoutes, // Dashboard routes will inherit DefaultLayout
+      ...propertyRoutes,
     ],
   },
   // Separate route for login and register, without DefaultLayout

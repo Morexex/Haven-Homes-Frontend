@@ -1,7 +1,7 @@
 <template>
   <v-navigation-drawer app permanent class="sidebar-drawer">
     <v-list class="static-header">
-      <v-list-item class="d-flex flex-column align-center justify-center" style="background-color: #FFD700;">
+      <v-list-item class="d-flex flex-column align-center justify-center" style="background-color: orange;">
         <v-img src="/assets/images/techhaven.png" class="mx-auto" max-width="120%" height="auto"
           style="margin-top: 0px; z-index: 1; position: relative;"></v-img>
         <span class="sidebar-title" style="font-family:'Courier New', Courier, monospace;">Haven Homes</span>
@@ -58,7 +58,7 @@ const selectedModule = ref(route.path);
 const menuItems = [
   { label: "DashBoard", icon: "mdi-view-dashboard", route: "/dashboard" },
   { label: "Tenants", icon: "mdi-account-group", route: "/tenants" },
-  { label: "Properties", icon: "mdi-office-building", route: "/property" },
+  { label: "Properties", icon: "mdi-office-building", route: "/properties" },
   { label: "Comms", icon: "mdi-message-text", route: "/communication" },
   { label: "Payments", icon: "mdi-cash-multiple", route: "/payments" },
   { label: "Support", icon: "mdi-lifebuoy", route: "/support" },
@@ -72,6 +72,7 @@ const menuItems = [
 /* Smaller sidebar width */
 .sidebar-drawer {
   width: 150px !important;
+  position: fixed !important;
   padding-top: 20px;
   border-right: 1px solid #ddd;
 }
@@ -96,7 +97,7 @@ const menuItems = [
 }
 
 .static-header{
-  position: fixed;
+  position: fixed !important;
   justify-content: center;
   width: 100%;
   background-color: transparent;
@@ -158,13 +159,13 @@ const menuItems = [
 }
 
 .logout-item .menu-icon {
-  color: #FFD700 !important; /* Strong orange color for logout icon */
+  color: orange !important; /* Strong orange color for logout icon */
 }
 
 .logout-text {
   font-size: 12px;
   font-weight: bold;
-  color: #FFD700;
+  color: orange;
   margin-top: 5px;
 }
 

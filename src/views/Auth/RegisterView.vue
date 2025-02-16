@@ -4,6 +4,7 @@ import { useAppStore } from '@/stores/useAppStore'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { AxiosError } from 'axios';
+import { useToast } from "vue-toastification";
 
 export default {
   setup() {
@@ -11,6 +12,7 @@ export default {
     const appStore = useAppStore()
     const currentPage = ref(1)
     const totalPages = 3
+    const toast = useToast()
     const formData = ref<{
       name: string;
       email: string;
@@ -30,8 +32,6 @@ export default {
       password: '',
       password_confirmation: '',
     });
-    const alertType = ref('')
-    const alertIcon = ref('')
     const isLoading = ref(false)
 
     const nextPage = () => {
@@ -45,15 +45,6 @@ export default {
         currentPage.value--
       }
     }
-    const alertActive = ref(false);
-
-    const alertMessage = ref<{
-      message: string;
-      type: "success" | "info" | "warning" | "error" | undefined;
-    }>({
-      message: "",
-      type: undefined,
-    });
 
     const handleSubmit = async () => {
       // Handle form submission logic here
@@ -66,19 +57,18 @@ export default {
         !formData.value.password ||
         !formData.value.password_confirmation
       ) {
-        alertMessage.value.message = 'Please fill in all fields.'
-        alertMessage.value.type = 'error'
-        alertActive.value = true;
+        toast.warning("Please fill in all fields.!", {
+            timeout: 3000,
+        });
         return
       }
 
       isLoading.value = true;
       try {
         const response = await apiClient.post('/register', formData.value)
-        // alert messahge
-        alertMessage.value.message = response.data.message || 'Registration successful!'
-        alertMessage.value.type = 'success'
-        alertActive.value = true;
+        toast.success(response.data.message || 'Registration successful!', {
+            timeout: 3000,
+        });
         // Reset form data
         formData.value = {
           name: '',
@@ -101,10 +91,9 @@ export default {
         } else if (error instanceof Error) {
           errorMessage = error.message;
         }
-
-        alertMessage.value.message = errorMessage;
-        alertMessage.value.type = 'error';
-        alertActive.value = true;
+        toast.error(errorMessage, {
+            timeout: 3000,
+        });
       } finally {
         isLoading.value = false
       }
@@ -131,10 +120,6 @@ export default {
       handleSubmit,
       formData,
       isLoading,
-      alertMessage,
-      alertActive,
-      alertType,
-      alertIcon,
     }
   },
   created() {
@@ -149,12 +134,6 @@ export default {
 </script>
 
 <template>
-  <v-container>
-    <v-alert v-if="alertActive"
-    :title="alertMessage.message"
-    :type="alertMessage.type"
-  ></v-alert>
-  </v-container>
   <v-container>
     <v-overlay :model-value="isLoading" class="align-center justify-center">
       <v-progress-circular v-if="isLoading" color="white" indeterminate></v-progress-circular>

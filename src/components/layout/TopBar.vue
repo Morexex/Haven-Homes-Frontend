@@ -9,7 +9,7 @@
           </v-btn>
         </v-col>
         <v-col cols="auto">
-          <v-icon size="30" color="#FFD700">mdi-heart</v-icon>
+          <v-icon size="30" color="orange">mdi-heart</v-icon>
         </v-col>
 
         <v-spacer></v-spacer>
@@ -28,7 +28,7 @@
           <template v-slot:activator="{ props }">
             <v-btn icon v-bind="props">
               <v-badge :content="notificationCount" color="green" size="small">
-                <v-icon icon="mdi-bell" color="#FFD700"></v-icon>
+                <v-icon icon="mdi-bell" color="orange"></v-icon>
               </v-badge>
             </v-btn>
           </template>
@@ -118,7 +118,7 @@ const logout = () => {
 .top-bar {
   background-color: #f4f4f4;
   border-radius: 15px;
-  position: fixed;
+  position: fixed !important;
   margin-top: 12px;
   margin-left: auto;
   width: calc(100vw - 190px) !important; /* Adjust to the entire viewport width minus the sidebar */

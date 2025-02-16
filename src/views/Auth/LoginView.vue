@@ -3,6 +3,7 @@ import { ref } from "vue";
 import apiClient from '@/services/apiClient'
 import { useRouter } from 'vue-router'
 import { AxiosError } from 'axios';
+import { useToast } from "vue-toastification";
 const form = ref({
   email: "",
   password: "",
@@ -11,14 +12,7 @@ const form = ref({
 const isLoading = ref(false);
 const alertActive = ref(false);
 const router = useRouter()
-
-const alertMessage = ref<{
-  message: string;
-  type: "success" | "info" | "warning" | "error" | undefined;
-}>({
-  message: "",
-  type: undefined,
-});
+const toast = useToast()
 
 const handleSubmit = async () => {
   if (
@@ -26,9 +20,9 @@ const handleSubmit = async () => {
     !form.value.email ||
     !form.value.password
   ) {
-    alertMessage.value.message = 'Please fill in all fields.';
-    alertMessage.value.type = 'error';
-    alertActive.value = true;
+    toast.warning('Please fill in all fields.', {
+      timeout: 3000,
+    });
     return;
   }
 
@@ -41,19 +35,21 @@ const handleSubmit = async () => {
     localStorage.setItem('auth_token', token);
     localStorage.setItem('user', JSON.stringify(user));
 
-    alertMessage.value.message = 'Login successful!';
-    alertMessage.value.type = 'success';
-    alertActive.value = true;
+    toast.success('Login Succesfull!.', {
+      timeout: 3000,
+    });
 
     // Redirect to Dashboard after successful login
     router.push({ name: 'home' });
   } catch (error) {
     if (error instanceof AxiosError && error.response && error.response.status === 401) {
-      alertMessage.value.message = 'Invalid credentials';
-      alertMessage.value.type = 'error';
+      toast.error('Invalid Credentials.', {
+      timeout: 3000,
+    });
     } else {
-      alertMessage.value.message = 'An error occurred';
-      alertMessage.value.type = 'error';
+      toast.error('An error occured.', {
+      timeout: 3000,
+    });
     }
 
     alertActive.value = true; // ✅ Keep this outside `finally`
@@ -64,12 +60,6 @@ const handleSubmit = async () => {
 
 </script>
 <template>
-  <v-container>
-    <v-alert v-if="alertActive"
-    :title="alertMessage.message"
-    :type="alertMessage.type"
-  ></v-alert>
-  </v-container>
   <v-container>
     <v-overlay :model-value="isLoading" class="align-center justify-center">
       <v-progress-circular v-if="isLoading" color="white" indeterminate></v-progress-circular>

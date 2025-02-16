@@ -1,44 +1,49 @@
 import axios from 'axios';
+import router from '@/router';
 
 // Create an Axios instance
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api', // Replace with your backend's base URL
-  timeout: 50000, // Set a timeout (in milliseconds)
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api',
+  timeout: 50000,
   headers: {
-    'Content-Type': 'application/json', // Set default headers
+    'Content-Type': 'application/json',
   },
 });
 
-// Add a request interceptor (e.g., for adding Authorization token)
+// Request Interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('auth_token'); // Retrieve token from localStorage
+    const token = localStorage.getItem('auth_token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // Attach token to request headers if present
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error); // Handle request errors
-  }
+  (error) => Promise.reject(error)
 );
 
-// Add a response interceptor (e.g., to handle errors globally)
+// Response Interceptor
 apiClient.interceptors.response.use(
-  (response) => response, // Simply return the response if successful
+  (response) => response,
   (error) => {
-    // Handle errors globally (e.g., unauthorized or network issues)
-    if (error.response?.status === 401) {
-      console.error('Unauthorized - Redirecting to login');
-      // Clear the token and redirect to login page if the user is unauthorized
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';  // You can use Vue Router for better navigation
-    } else if (error.response?.status === 500) {
-      console.error('Internal Server Error - Please try again later');
-      // Handle internal server errors (optional)
-    } else if (!error.response) {
+    if (error.response) {
+      const { status } = error.response;
+
+      if (status === 401) {
+        console.error('Unauthorized - Redirecting to login');
+        localStorage.removeItem('auth_token');
+        router.push('/login'); // Use Vue Router
+      } else if (status === 403) {
+        console.error('Forbidden - You do not have permission');
+      } else if (status === 404) {
+        console.error('Not Found - The requested resource does not exist');
+      } else if (status === 422) {
+        console.error('Validation Error - Check your input data');
+      } else if (status === 500) {
+        console.error('Internal Server Error - Please try again later');
+      }
+    } else {
       console.error('Network Error - Please check your connection');
-      // Handle network-related errors (optional)
     }
     return Promise.reject(error);
   }
