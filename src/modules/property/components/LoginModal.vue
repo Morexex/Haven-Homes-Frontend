@@ -85,7 +85,7 @@ export default {
         console.log("Navigating to property ID:", props.property?.id);
 
         if (props.property?.id) {
-          await router.push({ path: `/properties/view/${props.property.id}` });
+          await router.push({ path: `/property/view` });
         } else {
           console.error("Property ID is undefined. Cannot navigate.");
         }
