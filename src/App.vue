@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-main>
-      <div v-simplebar class="app-scroll-container">
+      <div v-simplebar class="app-scroll-container">z
         <router-view />
       </div>
     </v-main>

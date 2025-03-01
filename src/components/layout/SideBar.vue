@@ -23,18 +23,14 @@
 
     <v-divider></v-divider>
     <!-- Logout Item -->
-    <v-list-item
-    style="background-color: transparent !important; padding: 10px;"
-    @click="logout"
-    class="logout-item"
-  >
-    <div class="logout-column">
-      <v-icon size="30" color="orange" class="menu-icon">
-        mdi-logout
-      </v-icon>
-      <span class="logout-text">Logout</span>
-    </div>
-  </v-list-item>
+    <v-list-item style="background-color: transparent !important; padding: 10px;" @click="logout" class="logout-item">
+      <div class="logout-column">
+        <v-icon size="30" color="orange" class="menu-icon">
+          mdi-logout
+        </v-icon>
+        <span class="logout-text">Logout</span>
+      </div>
+    </v-list-item>
   </v-navigation-drawer>
 </template>
 
@@ -44,6 +40,9 @@ import { useRoute } from "vue-router";
 import { onMounted } from 'vue';
 import SimpleBar from 'simplebar';
 import 'simplebar/dist/simplebar.css';
+import { useAuthStore } from "@/stores/authStore";
+import apiClient from "@/services/apiClient";
+import { nextTick } from "vue";
 
 onMounted(() => {
   if (!document.querySelector('.v-navigation-drawer').hasAttribute('data-simplebar')) {
@@ -54,6 +53,7 @@ onMounted(() => {
 
 const route = useRoute();
 const selectedModule = ref(route.path);
+const authStore = useAuthStore();
 
 const menuItems = [
   { label: "DashBoard", icon: "mdi-view-dashboard", route: "/dashboard" },
@@ -66,10 +66,25 @@ const menuItems = [
   { label: "Permissions", icon: "mdi-shield-key", route: "/permissions" },
   { label: "Settings", icon: "mdi-cog", route: "/settings" },
 ];
+
+const logout = async () => {
+  try {
+    await apiClient.post("/logout"); // Send request to logout
+
+    // Clear the authentication data
+    authStore.clearAuthData();
+
+    // Directly reload the page
+    window.location.href = "/login"; // Redirect and force a full page reload
+  } catch (error) {
+    console.error("Logout failed:", error);
+  }
+};
+
+
 </script>
 
 <style scoped>
-/* Smaller sidebar width */
 .sidebar-drawer {
   width: 150px !important;
   position: fixed !important;
@@ -90,13 +105,14 @@ const menuItems = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-y: auto;
+  /* Enable vertical scrolling */
   max-height: auto;
   align-items: stretch;
   margin-top: 95px;
 }
 
-.static-header{
+.static-header {
   position: fixed !important;
   justify-content: center;
   width: 100%;
@@ -116,9 +132,11 @@ const menuItems = [
 }
 
 .sidebar-item:hover,
-.sidebar-item.v-list-item--active { 
-  background-color: transparent;  /* Change to your preferred blue */
-  color: white !important;  /* Ensure text is visible */
+.sidebar-item.v-list-item--active {
+  background-color: transparent;
+  /* Change to your preferred blue */
+  color: white !important;
+  /* Ensure text is visible */
 }
 
 /* Menu container with fixed size */
@@ -134,10 +152,13 @@ const menuItems = [
   transition: all 0.3s ease-in-out;
   background-color: transparent;
   cursor: pointer;
-  border: 1px solid green; /* Light border around items */
+  border: 1px solid green;
+  /* Light border around items */
 }
+
 .v-navigation-drawer {
-  padding: 0 !important; /* Ensures no extra padding */
+  padding: 0 !important;
+  /* Ensures no extra padding */
   width: 150px !important;
 }
 
@@ -159,7 +180,8 @@ const menuItems = [
 }
 
 .logout-item .menu-icon {
-  color: orange !important; /* Strong orange color for logout icon */
+  color: orange !important;
+  /* Strong orange color for logout icon */
 }
 
 .logout-text {

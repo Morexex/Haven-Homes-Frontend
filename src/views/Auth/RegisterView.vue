@@ -181,7 +181,7 @@ export default {
               <!-- Navigation Buttons -->
               <div class="d-flex justify-content-between mt-3">
                 <v-btn :disabled="currentPage === 1" @click="prevPage" variant="outlined" class="mt-2" type="button"
-                  style="width: auto; float: right; z-index: 2; margin-left: 300px; margin-right: 150px;">
+                  style="width: auto; float: right; z-index: 2; margin-left: 29.3vw; margin-right: 5vw;">
                   Previous
                 </v-btn>
                 <v-btn :disabled="currentPage === totalPages" @click="nextPage" color="orange-darken-2" class="mt-2"
@@ -198,14 +198,14 @@ export default {
               <v-card-action style="width: auto; float: right;">
                 <span>Already have an account? </span>
                 <router-link to="/login"
-                  style="color: orange; text-decoration: underline; z-index: 2;">Login</router-link>
+                  style="color: orange; text-decoration: underline; z-index: 20;">Login</router-link>
               </v-card-action>
             </v-form>
           </v-card-item>
         </v-col>
       </v-row>
-      <v-img src="/assets/images/home.png" class="mx-auto" max-width="100%" height="300"
-        style="margin-top: -300px; z-index: 1; position: relative;"></v-img>
+        <v-img src="/assets/images/home.png" class="mx-auto" max-width="100%" height="40vh"
+          style="margin-top: -300px; z-index: 1; position: relative;"></v-img>
     </v-card>
   </v-container>
 </template>

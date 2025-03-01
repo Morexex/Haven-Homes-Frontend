@@ -4,27 +4,12 @@
       <v-card-title class="text-h6">Login to Property</v-card-title>
       <v-card-text>
         <v-form @submit.prevent="handleLogin">
-          <v-text-field
-            v-model="form.property_code"
-            label="Property Code"
-            disabled
-            variant="outlined"
-          />
-          <v-text-field
-            v-model="form.email"
-            label="Email"
-            type="email"
-            required
-            variant="outlined"
-          />
-          <v-text-field
-            v-model="form.password"
-            label="Password"
-            type="password"
-            required
-            variant="outlined"
-          />
-          <v-btn type="submit" color="#F2994A" block class="mt-3">Login</v-btn>
+          <v-text-field v-model="form.property_code" label="Property Code" disabled variant="outlined" />
+          <v-text-field v-model="form.email" label="Email" type="email" required variant="outlined" />
+          <v-text-field v-model="form.password" label="Password" type="password" required variant="outlined" />
+          <v-btn type="submit" color="#F2994A" block class="mt-3">
+            Login
+          </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
@@ -37,6 +22,8 @@ import apiClient from "@/services/apiClient";
 import router from "@/router";
 import { useToast } from "vue-toastification";
 import { AxiosError } from "axios";
+import { useAuthStore } from "@/stores/authStore"; // Import Pinia store
+import { nextTick } from "vue";
 
 export default {
   props: {
@@ -46,6 +33,7 @@ export default {
   emits: ["update:modelValue"],
   setup(props, { emit }) {
     const toast = useToast();
+    const authStore = useAuthStore(); // Pinia Store
     const errorMessage = ref("");
 
     const dialog = computed({
@@ -74,31 +62,42 @@ export default {
 
       try {
         const response = await apiClient.post("/login", form.value);
+        const { token, user } = response.data;
 
-        localStorage.setItem("auth_token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        // ✅ Store token, user, and property_code in Pinia
+        authStore.setAuthData(token, user, form.value.property_code);
 
         toast.success("Login successful", { timeout: 2000 });
-        emit("update:modelValue", false);
 
-        // Debug property ID before navigating
-        console.log("Navigating to property ID:", props.property?.id);
+        console.log("Waiting for session to update...");
+        await nextTick();
 
-        if (props.property?.id) {
-          await router.push({ path: `/property/view` });
+        console.log("Checking session for:", form.value.property_code);
+        console.log("Session data:", authStore.sessions);
+
+        if (authStore.getSessionForProperty(form.value.property_code)) {
+          console.log("✅ Session found! Navigating to property:", form.value.property_code);
+          await router.push({
+            name: "view-property",
+            params: { property_code: form.value.property_code },
+          });
         } else {
-          console.error("Property ID is undefined. Cannot navigate.");
+          console.error("❌ Session for property not found. Check `setAuthData()` in authStore.");
         }
+
+        emit("update:modelValue", false); // Close modal after navigation
       } catch (error) {
         if (error instanceof AxiosError && error.response) {
           toast.error(error.response.data.error || "Login failed", { timeout: 3000 });
           errorMessage.value = error.response.data.error || "Login failed.";
         } else {
           toast.error("An unexpected error occurred", { timeout: 3000 });
-          console.log(error)
+          console.log(error);
         }
       }
     };
+
+
 
     return { dialog, form, handleLogin, errorMessage };
   },

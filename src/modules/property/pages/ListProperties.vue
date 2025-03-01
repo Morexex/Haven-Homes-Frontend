@@ -1,61 +1,56 @@
 <template>
   <div>
     <!-- Header Component (Reusable) -->
-    <HeaderTitle
-      title="Properties"
-      searchPlaceholder="Search Properties"
-      showSearch
-      :buttons="[
-        { text: 'Add Property', event: 'add-item', color: 'green', icon: 'plus' },
-      ]"
-      @update:search="updateSearchQuery"
-      @button-click="addProperty"
-    />
+    <HeaderTitle title="Properties" searchPlaceholder="Search Properties" showSearch
+      :buttons="[{ text: 'Add Property', event: 'add-item', color: 'green', icon: 'plus' }]"
+      @update:search="updateSearchQuery" @button-click="addProperty" />
 
     <!-- Property Cards -->
     <v-row>
       <v-col v-for="property in filteredProperties" :key="property.id" cols="12" md="4">
-        <v-card
-          class="property-card mx-auto"
-          max-width="344"
-          hover
-          @click="openLoginModal(property)"
-        >
+        <v-card class="property-card mx-auto" max-width="344" hover @click="handlePropertySelection(property)">
           <v-card-item>
             <v-card-title>{{ property.property_name }}</v-card-title>
             <v-card-subtitle>{{ property.property_address }}</v-card-subtitle>
           </v-card-item>
           <v-card-text>
-            Property Code:
-            {{ property.property_code }}
+            Property Code: {{ property.property_code }}
+            <!-- Show session status -->
+            <div v-if="getSessionStatus(property.property_code)">
+              <v-chip color="green" label>Active Session</v-chip>
+            </div>
+            <div v-else>
+              <v-chip color="red" label>Inactive Session</v-chip>
+            </div>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
-    <!-- Login Modal Component -->
+    <!-- Login Modal -->
     <LoginModal v-model="loginDialog" :property="selectedProperty" />
 
-    <!-- Register Property Dialog Component -->
+    <!-- Register Property Dialog -->
     <RegisterPropertyModal v-model:dialog="dialog" />
   </div>
 </template>
 
 <script lang="ts">
 import { ref, computed, onMounted } from "vue";
-import apiClient from "@/services/apiClient"; // Ensure correct path
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore"; // Import Pinia store
+import apiClient from "@/services/apiClient";
 import HeaderTitle from "../components/HeaderTitle.vue";
 import RegisterPropertyModal from "../components/RegisterPropertyModal.vue";
 import LoginModal from "../components/LoginModal.vue";
 import { useToast } from "vue-toastification";
 import { AxiosError } from "axios";
 
-// Define the property type
 interface Property {
   id: number;
   property_name: string;
   property_address: string;
-  property_code?: string;
+  property_code: string;
 }
 
 export default {
@@ -65,13 +60,10 @@ export default {
     const searchQuery = ref("");
     const dialog = ref(false);
     const loginDialog = ref(false);
-    const selectedProperty = ref<Property>({
-      id: 0,
-      property_name: "",
-      property_address: "",
-      property_code: "",
-    });
+    const selectedProperty = ref<Property | undefined>(undefined);
     const toast = useToast();
+    const router = useRouter();
+    const authStore = useAuthStore(); // Pinia authentication store
 
     // Fetch Properties from API
     const fetchProperties = async () => {
@@ -85,7 +77,10 @@ export default {
       }
     };
 
-    onMounted(fetchProperties);
+    onMounted(() => {
+      fetchProperties();
+      authStore.loadSessionsFromStorage(); // Load stored sessions
+    });
 
     // Computed Property for Filtering Properties Based on Search
     const filteredProperties = computed(() =>
@@ -94,7 +89,12 @@ export default {
       )
     );
 
-    // Function to Update Search Query (Fix for TypeScript error)
+    // Getter to fetch session status for a specific property
+    const getSessionStatus = (propertyCode: string) => {
+      return authStore.getSessionForProperty(propertyCode);
+    };
+
+    // Function to Update Search Query
     const updateSearchQuery = (query: string) => {
       searchQuery.value = query;
     };
@@ -104,22 +104,47 @@ export default {
       dialog.value = true;
     };
 
-    // Open Login Modal for a Selected Property
-    const openLoginModal = (property: Property) => {
-      selectedProperty.value = property;
-      loginDialog.value = true;
+    // Handle Property Selection (Check Session Before Showing Login Modal)
+    const handlePropertySelection = (property: Property) => {
+      if (!property.property_code) {
+        console.error("Property code is missing");
+        return;
+      }
+
+      if (authStore.isAuthenticated && authStore.propertyCode === property.property_code) {
+        // If already logged in for the property, proceed
+        router.push({
+          name: "view-property",
+          params: { property_code: property.property_code }
+        });
+        return;
+      }
+
+      // Check session for this specific property
+      if (authStore.getSessionForProperty(property.property_code)) {
+        // If session exists for this property, proceed to the view page
+        router.push({
+          name: "view-property",
+          params: { property_code: property.property_code }
+        });
+      } else {
+        // If no session exists for this property, show login modal
+        selectedProperty.value = property;
+        loginDialog.value = true;
+      }
     };
 
     return {
       properties,
       searchQuery,
-      updateSearchQuery, // ✅ Fixed function for updating search
+      updateSearchQuery,
       filteredProperties,
       addProperty,
       dialog,
       loginDialog,
       selectedProperty,
-      openLoginModal,
+      handlePropertySelection,
+      getSessionStatus, // Expose session status function to the template
     };
   },
 };

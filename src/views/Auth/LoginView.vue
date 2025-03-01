@@ -1,64 +1,60 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import apiClient from '@/services/apiClient'
-import { useRouter } from 'vue-router'
-import { AxiosError } from 'axios';
+import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
+import { AxiosError } from "axios";
+import { useAuthStore } from "@/stores/authStore";
+import apiClient from "@/services/apiClient";
+
 const form = ref({
   email: "",
   password: "",
-  property_code: ""
+  property_code: "",
 });
 const isLoading = ref(false);
-const alertActive = ref(false);
-const router = useRouter()
-const toast = useToast()
+const router = useRouter();
+const toast = useToast();
+const authStore = useAuthStore(); // Pinia Store
 
 const handleSubmit = async () => {
-  if (
-    !form.value.property_code ||
-    !form.value.email ||
-    !form.value.password
-  ) {
-    toast.warning('Please fill in all fields.', {
-      timeout: 3000,
-    });
+  if (!form.value.property_code || !form.value.email || !form.value.password) {
+    toast.warning("Please fill in all fields.", { timeout: 3000 });
     return;
   }
 
   isLoading.value = true;
 
   try {
-    const response = await apiClient.post('/login', form.value);
+    const response = await apiClient.post("/login", form.value);
     const { token, user } = response.data;
 
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+    // Store in Pinia
+    authStore.setAuthData(token, user, form.value.property_code);
 
-    toast.success('Login Succesfull!.', {
-      timeout: 3000,
-    });
+    toast.success("Login Successful!", { timeout: 3000 });
 
-    // Redirect to Dashboard after successful login
-    router.push({ name: 'home' });
-  } catch (error) {
-    if (error instanceof AxiosError && error.response && error.response.status === 401) {
-      toast.error('Invalid Credentials.', {
-      timeout: 3000,
-    });
-    } else {
-      toast.error('An error occured.', {
-      timeout: 3000,
-    });
+    // ✅ Ensure redirectTo is always a string
+    let redirectTo = router.currentRoute.value.query.redirect;
+    if (Array.isArray(redirectTo)) {
+      redirectTo = redirectTo[0]; // Take the first value if it's an array
     }
 
-    alertActive.value = true; // ✅ Keep this outside `finally`
+    router.push({ name: redirectTo || "dashboard" }); // Default to "home" if redirect is undefined
+  } catch (error: unknown) {
+    const axiosError = error as AxiosError<{ message?: string }>; // ✅ Define type
+    const errorMessage = axiosError.response?.data?.message || "An error occurred.";
+
+    if (axiosError.response?.status === 401) {
+      toast.error("Invalid Credentials.", { timeout: 3000 });
+    } else {
+      toast.error(errorMessage, { timeout: 3000 }); // ✅ No more TypeScript error
+    }
   } finally {
-    isLoading.value = false; // ✅ Only stop loading, don't hide the alert
+    isLoading.value = false;
   }
 };
-
 </script>
+
 <template>
   <v-container>
     <v-overlay :model-value="isLoading" class="align-center justify-center">
@@ -66,7 +62,7 @@ const handleSubmit = async () => {
     </v-overlay>
     <v-card variant="outlined">
       <v-row justify="center">
-        <v-sheet class="bg-green-500 pa-4 d-flex " width="500" style="height: 600px;" color="green" :elevation="17">
+        <v-sheet class="bg-green-500 pa-4 d-flex" width="500" style="height: 600px;" color="green" :elevation="17">
           <v-col>
             <v-img src="/assets/images/techhaven.png" class="mx-auto" max-width="80%" height="auto"
               style="margin-top: 30px; z-index: 1; position: relative;"></v-img>
@@ -87,17 +83,17 @@ const handleSubmit = async () => {
               <v-btn color="green" class="mt-2" type="submit" style="width: auto; float: right; z-index: 2;">
                 Login
               </v-btn>
-              <br><br>
+              <br /><br />
               <v-card-action style="width: auto; float: right;">
-                <span>dont have an account? </span>
+                <span>Don't have an account? </span>
                 <router-link to="/register"
-                  style="color: green; text-decoration: underline; z-index: 2;">register</router-link>
+                  style="color: green; text-decoration: underline; z-index: 2;">Register</router-link>
               </v-card-action>
             </v-form>
           </v-card-item>
         </v-col>
       </v-row>
-      <v-img src="/assets/images/home.png" class="mx-auto" max-width="100%" height="300"
+      <v-img src="/assets/images/home.png" class="mx-auto" max-width="100%" height="40vh"
         style="margin-top: -300px; z-index: 1; position: relative;"></v-img>
     </v-card>
   </v-container>
