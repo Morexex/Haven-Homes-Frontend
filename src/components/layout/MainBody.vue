@@ -11,7 +11,7 @@
 <style scoped>
 .body-view {
     border-radius: 15px;
-    margin-top: 100px;
+    margin-top: 70px;
     padding: 5px;  /* Custom padding */
     box-shadow: 0 4px 8px rgba(1, 0, 0, 0.3);  /* Optional: Add shadow for a card-like effect */
     width: calc(100vw - 190px);

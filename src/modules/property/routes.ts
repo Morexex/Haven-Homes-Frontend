@@ -1,41 +1,55 @@
 export default [
   {
-    path: '/properties',
+    path: "/properties",
     children: [
       {
-        path: '',
-        name: 'list-properties',
-        component: () => import('@/modules/property/pages/ListProperties.vue'),
+        path: "",
+        name: "list-properties",
+        component: () => import("@/modules/property/pages/ListProperties.vue"),
         meta: {
-          breadcrumb: 'Properties'
-        }
+          breadcrumb: "Properties",
+        },
       },
       {
-        path: 'update/:id',
-        name: 'update-property',
-        component: () => import('@/modules/property/pages/UpdateProperty.vue'),
-        meta:{
-          breadcrumb: 'Update Property'
+        path: "update/:id",
+        name: "update-property",
+        component: () => import("@/modules/property/pages/UpdateProperty.vue"),
+        meta: {
+          breadcrumb: "Update Property",
         },
-        props: true
-      }
+        props: true,
+      },
     ],
     meta: {
-      breadcrumb: 'Properties Management'
-    }
+      breadcrumb: "Properties Management",
+    },
   },
   {
-    path: '/property', // Separate route for viewing a property
+    path: "/property", // Separate route for viewing a property
     children: [
       {
-        path: 'view',
-        name: 'view-property',
-        component: () => import('@/modules/property/pages/ViewProperty.vue'),
+        path: "view",
+        name: "view-property",
+        component: () => import("@/modules/property/pages/ViewProperty.vue"),
         props: true,
         meta: {
-          breadcrumb: 'View Property'
-        }
-      }
-    ]
-  }
-]
+          breadcrumb: "View Property",
+        },
+      },
+      {
+        path: "/property/:id/images",
+        name: "ManagePropertyImages",
+        component: () =>
+          import("@/modules/property/components/ManagePropertyImages.vue"),
+        props: true,
+      },
+      {
+        path: "/room/:id/images",
+        name: "ManageRoomImages",
+        component: () =>
+          import("@/modules/property/components/ManageRoomImages.vue"),
+        props: true,
+      },
+    ],
+  },
+];
