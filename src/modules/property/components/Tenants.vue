@@ -2,21 +2,22 @@
     <HeaderTitle title="Tenants" searchPlaceholder="Search Tenants" showSearch
         :buttons="[{ text: 'Add Tenant', event: 'add-tenant', color: 'green', icon: 'plus' }]"
         @update:search="updateSearchQuery" @button-click="addTenant" />
+
     <TableComponent title="Tenants" :headers="headers" :items="formattedTenants" :actions="actions"
         :loading="loading" />
-    
-    <!-- Register Property Dialog -->
+
+    <!-- Add/Edit Tenant Modal -->
     <AddTenantsModal v-model="dialog" :tenant="selectedTenant" @tenant-added="refreshTenants"
         @tenant-updated="refreshTenants" />
 
     <!-- Confirmation Dialog -->
-    <ConfirmDialog v-model="showConfirmDialog" :title="confirmDialogTitle"
-        :message="confirmDialogMessage" :confirmText="confirmDialogButtonText"
-        cancelText="Cancel" @confirm="toggleTenantStatus" />
+    <ConfirmDialog v-model="showConfirmDialog" :title="confirmDialogTitle" :message="confirmDialogMessage"
+        :confirmText="confirmDialogButtonText" cancelText="Cancel" @confirm="toggleTenantStatus" />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
@@ -35,6 +36,7 @@ interface Tenant {
     role: string;
 }
 
+const router = useRouter();
 const searchQuery = ref("");
 const authStore = useAuthStore();
 const dialog = ref(false);
@@ -45,7 +47,6 @@ const showConfirmDialog = ref(false);
 const confirmDialogTitle = ref("");
 const confirmDialogMessage = ref("");
 const confirmDialogButtonText = ref("");
-
 const selectedTenant = ref<Tenant | null>(null);
 
 // Open Add Tenant Modal
@@ -60,15 +61,9 @@ const updateSearchQuery = (query: string) => {
 // Show confirmation dialog before toggling activation
 const confirmDeactivation = (tenant: Tenant) => {
     selectedTenant.value = tenant;
-    if (tenant.status === "inactive") {
-        confirmDialogTitle.value = "Confirm Activation";
-        confirmDialogMessage.value = `Are you sure you want to activate this tenant ${tenant.name}?`;
-        confirmDialogButtonText.value = "Activate";
-    } else {
-        confirmDialogTitle.value = "Confirm Deactivation";
-        confirmDialogMessage.value = `Are you sure you want to deactivate this tenant ${tenant.name}?`;
-        confirmDialogButtonText.value = "Deactivate";
-    }
+    confirmDialogTitle.value = tenant.status === "inactive" ? "Confirm Activation" : "Confirm Deactivation";
+    confirmDialogMessage.value = `Are you sure you want to ${tenant.status === "inactive" ? "activate" : "deactivate"} ${tenant.name}?`;
+    confirmDialogButtonText.value = tenant.status === "inactive" ? "Activate" : "Deactivate";
     showConfirmDialog.value = true;
 };
 
@@ -92,8 +87,8 @@ const fetchTenants = async () => {
             headers: { "Property-Code": authStore.propertyCode },
         });
 
-        console.log("API Response:", data); // Debugging
-        tenants.value = Array.isArray(data.tenants) ? data.tenants : []; // ✅ Extract array correctly
+        console.log("API Response:", data);
+        tenants.value = Array.isArray(data.tenants) ? data.tenants : [];
 
     } catch (error) {
         toast.error("Failed to load tenants.");
@@ -103,18 +98,32 @@ const fetchTenants = async () => {
     }
 };
 
-
 const editTenant = (tenant: Tenant) => {
     selectedTenant.value = tenant;
     dialog.value = true;
 };
 
-const formattedTenants = computed(() => {
-    return tenants.value.map((tenant) => ({
-        ...tenant,
-        room_id: tenant.room_id ? tenant.room_id : "No Room Assigned",
-    }));
-});
+// Navigate to ViewUserPage.vue with tenant details
+const viewTenant = (tenant: Tenant) => {
+    router.push({
+        name: "ViewUserPage",
+        params: { type: "tenant" },
+        query: {
+            id: tenant.id,
+            name: tenant.name,
+            email: tenant.email,
+            phone: tenant.phone,
+            role: tenant.role,
+            room_id: tenant.room_id ?? "No Room Assigned",
+            status: tenant.status
+        }
+    });
+};
+
+const formattedTenants = computed(() => tenants.value.map(tenant => ({
+    ...tenant,
+    room_id: tenant.room_id ? tenant.room_id : "No Room Assigned",
+})));
 
 // Toggle activation/deactivation
 const toggleTenantStatus = async () => {
@@ -122,7 +131,7 @@ const toggleTenantStatus = async () => {
     const newStatus = selectedTenant.value.status === "inactive" ? "active" : "inactive";
     try {
         await apiClient.patch(`/tenants/${selectedTenant.value.id}/update`, {
-            status: newStatus, // ✅ Toggling status
+            status: newStatus,
         }, {
             headers: { "Property-Code": authStore.propertyCode },
         });
@@ -134,8 +143,6 @@ const toggleTenantStatus = async () => {
         showConfirmDialog.value = false;
     }
 };
-
-const viewTenant = (tenant: Tenant) => console.log("View tenant details:", tenant);
 
 const actions = [
     { name: "edit", icon: "mdi-pencil", color: "orange", handler: editTenant },

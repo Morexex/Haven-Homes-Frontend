@@ -3,10 +3,13 @@
         <!-- Header Component (Reusable) -->
         <HeaderTitle title="Vacancies" searchPlaceholder="Search Vacancies" showSearch
             @update:search="updateSearchQuery" />
-
-        <v-row>
+        <!-- Loading Indicator -->
+        <div v-if="loading" class="loading-container">
+            <v-progress-circular indeterminate color="green" size="50"></v-progress-circular>
+        </div>
+        <v-row v-else>
             <v-col v-for="room in filteredVacancies" :key="room.id" cols="12" md="4">
-                <v-card class="property-card mx-auto" max-width="344" hover>
+                <v-card class="property-card mx-auto" max-width="344" hover @click="viewRoom(room)">
                     <v-card-item>
                         <v-card-title>{{ room.label }}</v-card-title>
                         <v-card-subtitle>{{ room.floor }}</v-card-subtitle>
@@ -17,9 +20,9 @@
                         <v-row align="center">
                             <!-- Image Column -->
                             <v-col cols="5">
-                                <v-img
-                                    :src="roomImages[room.id]?.[0] ? roomImages[room.id][0] : 'https://via.placeholder.com/150'"
-                                    height="100" cover class="rounded-lg"></v-img>
+                                <v-img v-if="roomImages[room.id]?.[0]" :src="roomImages[room.id][0]" height="100" cover
+                                    class="rounded-lg"></v-img>
+                                <v-icon v-else color="green" size="100">mdi-door</v-icon>
                             </v-col>
 
                             <!-- Room Details Column -->
@@ -47,6 +50,7 @@ import apiClient from "@/services/apiClient";
 import HeaderTitle from "../components/HeaderTitle.vue";
 import { useToast } from "vue-toastification";
 import { useAuthStore } from "@/stores/authStore";
+import { useRouter } from "vue-router";
 
 interface Room {
     id: number;
@@ -63,6 +67,7 @@ export default {
         const toast = useToast();
         const authStore = useAuthStore();
         const loading = ref(false);
+        const router = useRouter();
 
         // Fetch Properties from API
         const fetchRooms = async () => {
@@ -106,7 +111,11 @@ export default {
                 });
 
                 if (Array.isArray(response.data.images) && response.data.images.length > 0) {
-                    roomImages.value = { ...roomImages.value, [roomId]: response.data.images };
+                    roomImages.value = {
+                        ...roomImages.value,
+                        [roomId]: response.data.images.map((image: { image_url: string }) => image.image_url)
+                    };
+                    console.log("Room Images:", roomImages.value);
                 } else {
                     console.warn(`No images found for room ${roomId}`);
                 }
@@ -114,6 +123,10 @@ export default {
                 console.error("Failed to fetch images:", error);
                 toast.error("Failed to load room images.");
             }
+        };
+
+        const viewRoom = (room: Room) => {
+            router.push({ name: "RoomDetails", params: { id: room.id } });
         };
 
 
@@ -134,6 +147,8 @@ export default {
             updateSearchQuery,
             filteredVacancies,
             roomImages,
+            loading,
+            viewRoom,
         };
     },
 };

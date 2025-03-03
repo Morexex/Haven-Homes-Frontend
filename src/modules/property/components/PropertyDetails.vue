@@ -12,17 +12,26 @@
       </v-col>
     </v-row>
 
-    <!-- Logo Area -->
+    <!-- Logo & Property Info -->
     <v-row>
-      <v-col cols="8" md="2">
+      <v-col cols="2">
         <v-card class="mx-auto" rounded="0">
-          <v-avatar color="grey" rounded="0" size="150">
-            <v-img v-if="logoImage" :src="logoImage.image_url" cover></v-img>
+          <v-avatar color="grey" rounded="0" size="180">
+            <!-- Shimmer Effect for Logo -->
+            <v-skeleton-loader v-if="loading" type="image" />
+            <v-img v-else-if="logoImage" :src="logoImage.image_url" cover></v-img>
             <v-img v-else src="https://cdn.vuetifyjs.com/images/profiles/marcus.jpg" cover></v-img>
           </v-avatar>
-          <v-list-item :subtitle="propertyDetails?.property_address" :title="propertyDetails?.property_name"></v-list-item>
+
+          <!-- Shimmer Effect for Property Name & Address -->
+          <v-list-item v-if="loading">
+            <v-skeleton-loader type="heading, text" />
+          </v-list-item>
+          <v-list-item v-else :subtitle="propertyDetails?.property_address"
+            :title="propertyDetails?.property_name"></v-list-item>
         </v-card>
       </v-col>
+
       <v-col cols="12" md="12" class="text-right">
         <v-btn color="green" @click="UploadPropertyImages" :loading="loading">Manage Photos</v-btn>
       </v-col>
@@ -31,8 +40,15 @@
     <v-divider class="my-4"></v-divider>
     <h2 class="text-h5 font-weight-bold">Property Images</h2>
 
-    <!-- Display Uploaded Property Images -->
-    <v-row v-if="filteredImages.length">
+    <!-- Images Section -->
+    <v-row v-if="loading">
+      <!-- Shimmer for Images -->
+      <v-col v-for="i in 3" :key="i" cols="4">
+        <v-skeleton-loader type="image, text" />
+      </v-col>
+    </v-row>
+
+    <v-row v-else-if="filteredImages.length">
       <v-col v-for="(image, index) in filteredImages" :key="index" cols="4">
         <v-card class="pa-2 image-card" @mouseenter="hoveredImageId = image.id" @mouseleave="hoveredImageId = null">
           <v-img :src="image.image_url" aspect-ratio="1" class="rounded-lg" cover></v-img>
@@ -42,6 +58,7 @@
         </v-card>
       </v-col>
     </v-row>
+
     <p v-else>No images uploaded yet.</p>
   </v-container>
 </template>
@@ -53,7 +70,6 @@ import { useToast } from "vue-toastification";
 import apiClient from "@/services/apiClient";
 import { useAuthStore } from "@/stores/authStore";
 
-// Define the PropertyImage type
 interface PropertyImage {
   id: number;
   image_url: string;
@@ -71,7 +87,7 @@ export default {
     const hoveredImageId = ref<number | null>(null);
     const authStore = useAuthStore();
 
-    // ✅ Fetch property details and then fetch images
+    // Fetch property details
     const fetchPropertyDetails = async () => {
       loading.value = true;
       if (!authStore.propertyCode) {
@@ -85,7 +101,7 @@ export default {
         const response = await apiClient.get(`/properties/${property_code}`);
         propertyDetails.value = response.data;
 
-        // ✅ Fetch images only after property details are retrieved
+        // Fetch images after property details are retrieved
         await fetchPropertyImages();
       } catch (error) {
         console.error("Error fetching property details:", error);
@@ -95,9 +111,9 @@ export default {
       }
     };
 
-    // ✅ Fetch property images
+    // Fetch property images
     const fetchPropertyImages = async () => {
-      const propertyId = propertyDetails.value?.id; // ✅ Correct way to access property ID
+      const propertyId = propertyDetails.value?.id;
       if (!propertyId) {
         console.error("Property ID is missing!");
         return;
@@ -112,43 +128,36 @@ export default {
       }
     };
 
-    // ✅ Navigate to image upload page
     const UploadPropertyImages = () => {
       if (!propertyDetails.value?.id) {
         toast.error("❌ Property ID is missing. Cannot navigate.");
-        console.error("❌ Error: Property ID is undefined", propertyDetails.value);
         return;
       }
-
-      console.log("✅ Navigating with property ID:", propertyDetails.value.id);
-
       router.push({
         name: "ManagePropertyImages",
         params: { id: propertyDetails.value.id },
       });
     };
 
-    // ✅ Go back function
     const goBack = () => {
       router.back();
     };
 
-    // ✅ Find logo image
+    // Get logo image
     const logoImage = computed(() =>
       propertyImages.value.find((img) => img.tag.toLowerCase() === "logo")
     );
 
-    // ✅ Get all images except the logo
+    // Filter out logo images
     const filteredImages = computed(() =>
       propertyImages.value.filter((img) => img.tag.toLowerCase() !== "logo")
     );
 
-    // ✅ Format tag for display
+    // Format tag for display
     const formatTag = (tag: string) => {
       return tag.charAt(0).toUpperCase() + tag.slice(1).replace(/-/g, " ");
     };
 
-    // ✅ Fetch data on mount
     onMounted(() => {
       fetchPropertyDetails();
     });

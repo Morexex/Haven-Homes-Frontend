@@ -50,6 +50,19 @@ export default [
           import("@/modules/property/components/ManageRoomImages.vue"),
         props: true,
       },
+      {
+        path: "/rooms/:id",
+        name: "RoomDetails",
+        component: () =>
+          import("@/modules/property/components/RoomDetails.vue"),
+        props: true,
+      },
+      {
+        path: '/view-user/:type',  // "type" can be "tenant" or "staff"
+        name: 'ViewUserPage',
+        component: () => import('@/modules/property/components/ViewUserDetails.vue'),
+        props: (route: { params: { type: string } }) => ({ type: route.params.type }) // Allow route to pass type as a prop
+      }
     ],
   },
 ];

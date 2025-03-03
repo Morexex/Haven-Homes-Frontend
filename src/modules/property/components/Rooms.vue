@@ -147,7 +147,9 @@ const filteredRooms = computed(() =>
   rooms.value.filter((room) => room.label.toLowerCase().includes(searchQuery.value.toLowerCase()))
 );
 
-const viewRoom = (room: Room) => console.log("View room details:", room);
+const viewRoom = (room: Room) => {
+  router.push({ name: "RoomDetails", params: { id: room.id } });
+};
 
 // Update delete action to call confirmDelete first
 const actions = [

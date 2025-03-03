@@ -22,6 +22,7 @@ import HeaderTitle from "./HeaderTitle.vue";
 import AddStaffsModal from "./AddStaffsModal.vue";
 import TableComponent from "./TableComponent.vue";
 import ConfirmDialog from "./ConfirmationDialog.vue";
+import { useRouter } from "vue-router";
 
 interface Staff {
     id: number;
@@ -43,6 +44,7 @@ const showConfirmDialog = ref(false);
 const confirmDialogTitle = ref("");
 const confirmDialogMessage = ref("");
 const confirmDialogButtonText = ref("");
+const router = useRouter();
 
 const selectedStaff = ref<Staff | null>(null);
 
@@ -133,7 +135,22 @@ const toggleTenantStatus = async () => {
     }
 };
 
-const viewStaff = (staff: Staff) => console.log("View staff details:", staff);
+const viewStaff = (staff: Staff) => {
+    router.push({
+        name: "ViewUserPage",
+        params: { type: "staff" },
+        query: {
+            id: staff.id,
+            name: staff.name,
+            email: staff.email,
+            phone: staff.phone,
+            role: staff.role,
+            room_id: staff.room_id ?? "No Room Assigned",
+            status: staff.status
+        }
+    });
+};
+
 
 const actions = [
     { name: "edit", icon: "mdi-pencil", color: "orange", handler: editStaff },

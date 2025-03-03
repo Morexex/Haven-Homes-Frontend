@@ -5,8 +5,13 @@
       :buttons="[{ text: 'Add Property', event: 'add-item', color: 'green', icon: 'plus' }]"
       @update:search="updateSearchQuery" @button-click="addProperty" />
 
+    <!-- Loading Indicator -->
+    <div v-if="loading" class="loading-container">
+      <v-progress-circular indeterminate color="green" size="50"></v-progress-circular>
+    </div>
+
     <!-- Property Cards -->
-    <v-row>
+    <v-row v-else>
       <v-col v-for="property in filteredProperties" :key="property.id" cols="12" md="4">
         <v-card class="property-card mx-auto" max-width="344" hover @click="handlePropertySelection(property)">
           <v-card-item>
@@ -38,7 +43,7 @@
 <script lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "@/stores/authStore"; // Import Pinia store
+import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
 import HeaderTitle from "../components/HeaderTitle.vue";
 import RegisterPropertyModal from "../components/RegisterPropertyModal.vue";
@@ -61,12 +66,14 @@ export default {
     const dialog = ref(false);
     const loginDialog = ref(false);
     const selectedProperty = ref<Property | undefined>(undefined);
+    const loading = ref(true); // Add loading state
     const toast = useToast();
     const router = useRouter();
-    const authStore = useAuthStore(); // Pinia authentication store
+    const authStore = useAuthStore();
 
     // Fetch Properties from API
     const fetchProperties = async () => {
+      loading.value = true;
       try {
         const response = await apiClient.get<Property[]>("/properties");
         properties.value = response.data;
@@ -74,37 +81,34 @@ export default {
         if (error instanceof AxiosError && error.response) {
           toast.error("❌ Error fetching properties:", { timeout: 3000 });
         }
+      } finally {
+        loading.value = false; // Stop loading
       }
     };
 
     onMounted(() => {
       fetchProperties();
-      authStore.loadSessionsFromStorage(); // Load stored sessions
+      authStore.loadSessionsFromStorage();
     });
 
-    // Computed Property for Filtering Properties Based on Search
     const filteredProperties = computed(() =>
       properties.value.filter((property) =>
         property.property_name?.toLowerCase().includes(searchQuery.value.toLowerCase())
       )
     );
 
-    // Getter to fetch session status for a specific property
     const getSessionStatus = (propertyCode: string) => {
       return authStore.getSessionForProperty(propertyCode);
     };
 
-    // Function to Update Search Query
     const updateSearchQuery = (query: string) => {
       searchQuery.value = query;
     };
 
-    // Open Add Property Modal
     const addProperty = () => {
       dialog.value = true;
     };
 
-    // Handle Property Selection (Check Session Before Showing Login Modal)
     const handlePropertySelection = (property: Property) => {
       if (!property.property_code) {
         console.error("Property code is missing");
@@ -112,7 +116,6 @@ export default {
       }
 
       if (authStore.isAuthenticated && authStore.propertyCode === property.property_code) {
-        // If already logged in for the property, proceed
         router.push({
           name: "view-property",
           params: { property_code: property.property_code }
@@ -120,15 +123,12 @@ export default {
         return;
       }
 
-      // Check session for this specific property
       if (authStore.getSessionForProperty(property.property_code)) {
-        // If session exists for this property, proceed to the view page
         router.push({
           name: "view-property",
           params: { property_code: property.property_code }
         });
       } else {
-        // If no session exists for this property, show login modal
         selectedProperty.value = property;
         loginDialog.value = true;
       }
@@ -144,7 +144,8 @@ export default {
       loginDialog,
       selectedProperty,
       handlePropertySelection,
-      getSessionStatus, // Expose session status function to the template
+      getSessionStatus,
+      loading // Expose loading state
     };
   },
 };
@@ -159,5 +160,12 @@ export default {
 .property-card:hover {
   background-color: rgba(0, 128, 0, 0.1);
   box-shadow: 0px 4px 10px rgba(0, 128, 0, 0.3);
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
 }
 </style>
