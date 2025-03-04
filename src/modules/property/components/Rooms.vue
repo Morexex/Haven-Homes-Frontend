@@ -18,21 +18,23 @@
           <v-icon color="orange" class="mr-2">mdi-shape</v-icon> Add Category
         </v-list-item-title>
       </v-list-item>
+      <!-- add amenity button -->
+      <v-list-item @click="handleButtonClick('add-amenity')">
+        <v-list-item-title>
+          <v-icon color="blue" class="mr-2">mdi-shower</v-icon> Add Amenity
+        </v-list-item-title>
+      </v-list-item>
     </v-list>
   </v-menu>
 
   <AddCategoryModal v-model="categoryDialog" @category-added="refreshCategories" />
   <AddRoomModal v-model="dialog" :room="selectedRoom" @room-added="refreshRooms" @room-updated="refreshRooms" />
+  <AddAmenityModal v-model="amenityDialog" @amenity-added="refreshAmenities" />
 
   <!-- Confirmation Dialog -->
-  <ConfirmDialog
-    v-model="showConfirmDialog"
-    title="Confirm Deletion"
-    :message="`Are you sure you want to delete the room ${selectedRoom?.label}?`"
-    confirmText="Delete"
-    cancelText="Cancel"
-    @confirm="deleteRoom"
-  />
+  <ConfirmDialog v-model="showConfirmDialog" title="Confirm Deletion"
+    :message="`Are you sure you want to delete the room ${selectedRoom?.label}?`" confirmText="Delete"
+    cancelText="Cancel" @confirm="deleteRoom" />
 </template>
 
 <script setup lang="ts">
@@ -46,6 +48,7 @@ import AddCategoryModal from "./AddCategoryModal.vue";
 import AddRoomModal from "./AddRoomModal.vue";
 import TableComponent from "./TableComponent.vue";
 import ConfirmDialog from "./ConfirmationDialog.vue";
+import AddAmenityModal from "./AddAmenityModal.vue";
 
 interface Room {
   id: number;
@@ -60,6 +63,7 @@ const searchQuery = ref("");
 const authStore = useAuthStore();
 const dialog = ref(false);
 const categoryDialog = ref(false);
+const amenityDialog = ref(false);
 const rooms = ref<Room[]>([]);
 const toast = useToast();
 const loading = ref(false);
@@ -73,7 +77,7 @@ const headers = [
   { text: "Floor", value: "floor" },
   { text: "Quantity", value: "quantity" },
   { text: "Description", value: "description" },
-  { text: "Vacant", value: "is_vacant" },
+  { text: "Vacancy Status", value: "is_vacant", slot: true },
 ];
 
 const updateSearchQuery = (query: string) => (searchQuery.value = query);
@@ -81,6 +85,7 @@ const updateSearchQuery = (query: string) => (searchQuery.value = query);
 const handleButtonClick = (event: string) => {
   if (event === "add-room") dialog.value = true;
   else if (event === "add-category") categoryDialog.value = true;
+  else if (event === "add-amenity") amenityDialog.value = true;
 };
 
 const fetchRooms = async () => {
@@ -95,6 +100,17 @@ const fetchRooms = async () => {
     toast.error("Failed to load rooms.");
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchAmenities = async () => {
+  if (!authStore.propertyCode) return;
+  try {
+    await apiClient.get("/amenities", {
+      headers: { "Property-Code": authStore.propertyCode },
+    });
+  } catch {
+    toast.error("Failed to load amenities.");
   }
 };
 
@@ -142,6 +158,7 @@ const addRoomImages = (room: Room) => {
 
 const refreshCategories = fetchCategories;
 const refreshRooms = fetchRooms;
+const refreshAmenities = fetchAmenities;
 
 const filteredRooms = computed(() =>
   rooms.value.filter((room) => room.label.toLowerCase().includes(searchQuery.value.toLowerCase()))
@@ -162,6 +179,7 @@ const actions = [
 onMounted(() => {
   fetchRooms();
   fetchCategories();
+  fetchAmenities();
 });
 </script>
 

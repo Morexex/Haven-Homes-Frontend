@@ -19,9 +19,10 @@
                     @update:modelValue="previewImages" append-inner-icon="mdi-camera">
                 </v-file-input>
 
-                <v-select label="Select Image Type"
-                    :items="['Sitting Area', 'Kitchen', 'Bathrooms', 'Toilet', 'Balcony', 'Bedroom', 'Doors', 'Windows', 'Walls', 'Ceiling', 'Flooring', 'Lighting', 'Electrical Fittings', 'Plumbing Fittings', 'Others']"
-                    v-model="selectedTag" variant="outlined"></v-select>
+                <!-- Image Type Dropdown -->
+                <v-select label="Select Amenity" :items="filteredAmenities.map(a => a.label)" v-model="selectedTag"
+                    variant="outlined" :placeholder="amenityPlaceholder">
+                </v-select>
 
                 <!-- Image Preview -->
                 <v-row v-if="imagePreviews.length" class="mt-4">
@@ -32,9 +33,13 @@
                     </v-col>
                 </v-row>
 
-                <v-btn :color="selectedImage ? 'warning' : 'orange'" class="mt-4" :loading="uploading"
+                <v-btn :color="selectedImage ? 'warning' : 'orange'" class="mt-4 mr-2" :loading="uploading"
                     @click="selectedImage ? updateImage() : uploadImages()">
                     {{ selectedImage ? "Update Image" : "Upload" }}
+                </v-btn>
+                <!-- add another button to add amenity -->
+                <v-btn color="green" class="mt-4" @click="handleButtonClick('add-amenity')">
+                    Add Amenity
                 </v-btn>
 
                 <v-btn v-if="selectedImage" class="mt-4 ml-2" color="red" @click="clearSelection">Cancel</v-btn>
@@ -60,22 +65,29 @@
         </v-row>
         <p v-else>No images uploaded yet.</p>
     </v-container>
+    <AddAmenityModal v-model="amenityDialog" @amenity-added="refreshAmenities" />
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineProps } from "vue";
+import { ref, onMounted, defineProps, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import apiClient from "@/services/apiClient";
 import { useToast } from "vue-toastification";
 import { AxiosError } from "axios";
 import { useAuthStore } from "@/stores/authStore";
+import AddAmenityModal from "./AddAmenityModal.vue";
 
 // Receive propertyId from the route
 const props = defineProps<{ id: string }>();
+const roomCategory = ref<string | null>(null);
+const amenities = ref<any[]>([]);
+const filteredAmenities = ref<any[]>([]);
+const isLoading = ref<boolean>(true);
+const selectedTag = ref<string | null>(null);
 
 //State variables
 const selectedImages = ref<File[]>([]);
-const selectedTag = ref<string>("");
+//const selectedTag = ref<string>("");
 const imagePreviews = ref<string[]>([]);
 const roomImages = ref<any[]>([]);
 const uploading = ref<boolean>(false);
@@ -84,10 +96,16 @@ const hoveredImageId = ref<number | null>(null);
 const toast = useToast();
 const router = useRouter();
 const authStore = useAuthStore();
+const amenityDialog = ref(false);
 
 //Go back function
 const goBack = () => {
     router.back();
+};
+
+
+const handleButtonClick = (event: string) => {
+    if (event === "add-amenity") amenityDialog.value = true;
 };
 
 //Fetch property images
@@ -98,15 +116,72 @@ const fetchRoomImages = async () => {
     }
 
     try {
-        const response = await apiClient.get(`/rooms/${props.id}/images`,{
-      headers: { "Property-Code": authStore.propertyCode },
-    });
+        const response = await apiClient.get(`/rooms/${props.id}/images`, {
+            headers: { "Property-Code": authStore.propertyCode },
+        });
         roomImages.value = response.data.images;
+        fetchAmenities();
     } catch (error) {
         console.error("Failed to fetch images:", error);
         toast.error("Failed to load room images.");
     }
 };
+
+// Fetch Room Details (including category)
+const fetchRoomDetails = async () => {
+    if (!props.id) {
+        toast.error("Room ID is missing.");
+        return;
+    }
+
+    try {
+        const response = await apiClient.get(`/rooms/${props.id}`, {
+            headers: { "Property-Code": authStore.propertyCode },
+        });
+
+        roomCategory.value = response.data.category?.label || null;
+        fetchAmenities(); // Fetch amenities after getting room category
+    } catch (error) {
+        toast.error("Failed to fetch room details.");
+        console.error(error);
+    }
+};
+
+// Fetch Amenities and Filter
+const fetchAmenities = async () => {
+    if (!authStore.propertyCode) return;
+
+    isLoading.value = true;
+
+    try {
+        const response = await apiClient.get("/amenities", {
+            headers: { "Property-Code": authStore.propertyCode },
+        });
+
+        amenities.value = response.data;
+
+        // Filter amenities based on the room category
+        filteredAmenities.value = amenities.value.filter(
+            (amenity) => amenity.category.label === roomCategory.value
+        );
+    } catch (error) {
+        toast.error("Failed to load amenities.");
+        console.error(error);
+    } finally {
+        isLoading.value = false;
+    }
+};
+
+// Computed property to determine the correct placeholder
+const amenityPlaceholder = computed(() => {
+    if (isLoading.value) return "Loading amenities...";
+    return filteredAmenities.value.length === 0
+        ? "Add Room's category amenity first"
+        : "Select an amenity";
+});
+
+
+const refreshAmenities = fetchRoomDetails;
 
 //Preview selected images before upload
 const previewImages = (event: File | File[] | undefined) => {
@@ -140,11 +215,13 @@ const uploadImages = async () => {
     selectedImages.value.forEach((image) => {
         formData.append("images[]", image);
     });
-    formData.append("tag", selectedTag.value);
+    if (selectedTag.value) {
+        formData.append("tag", selectedTag.value);
+    }
 
     try {
         await apiClient.post(`/rooms/${props.id}/upload-images`, formData, {
-            headers: { "Content-Type": "multipart/form-data" , "Property-Code": authStore.propertyCode },
+            headers: { "Content-Type": "multipart/form-data", "Property-Code": authStore.propertyCode },
         });
 
         toast.success("Images uploaded successfully!");
@@ -163,7 +240,9 @@ const updateImage = async () => {
 
     uploading.value = true;
     const formData = new FormData();
-    formData.append("tag", selectedTag.value);
+    if (selectedTag.value) {
+        formData.append("tag", selectedTag.value);
+    }
 
     if (selectedImages.value.length > 0) {
         formData.append("image", selectedImages.value[0]);
@@ -216,8 +295,11 @@ const handleApiError = (error: unknown) => {
     }
 };
 
-//Fetch images on mount
-onMounted(fetchRoomImages);
+//Fetch images and room details on component mount
+onMounted(() => {
+    fetchRoomDetails();
+    fetchRoomImages();
+});
 </script>
 
 <style scoped>

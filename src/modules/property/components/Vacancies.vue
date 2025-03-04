@@ -7,6 +7,15 @@
         <div v-if="loading" class="loading-container">
             <v-progress-circular indeterminate color="green" size="50"></v-progress-circular>
         </div>
+        <!-- Empty State Card -->
+        <v-row v-else-if="filteredVacancies.length === 0">
+            <v-col cols="12">
+                <v-card class="empty-card mx-auto" max-width="344">
+                    <v-card-title>No Rooms for this property</v-card-title>
+                </v-card>
+            </v-col>
+        </v-row>
+        <!-- Rooms List -->
         <v-row v-else>
             <v-col v-for="room in filteredVacancies" :key="room.id" cols="12" md="4">
                 <v-card class="property-card mx-auto" max-width="344" hover @click="viewRoom(room)">
@@ -14,7 +23,6 @@
                         <v-card-title>{{ room.label }}</v-card-title>
                         <v-card-subtitle>{{ room.floor }}</v-card-subtitle>
                     </v-card-item>
-
                     <!-- Row to hold the image and room details side by side -->
                     <v-card-text>
                         <v-row align="center">
@@ -24,7 +32,6 @@
                                     class="rounded-lg"></v-img>
                                 <v-icon v-else color="green" size="100">mdi-door</v-icon>
                             </v-col>
-
                             <!-- Room Details Column -->
                             <v-col cols="7">
                                 <div>No Of Rooms: {{ room.quantity }}</div>
@@ -40,7 +47,6 @@
                 </v-card>
             </v-col>
         </v-row>
-
     </div>
 </template>
 
@@ -90,10 +96,10 @@ export default {
             }
         };
 
-
         onMounted(() => {
             fetchRooms();
         });
+
         // Computed Room for Filtering Properties Based on Search
         const filteredVacancies = computed(() =>
             rooms.value.filter((room) =>
@@ -129,7 +135,6 @@ export default {
             router.push({ name: "RoomDetails", params: { id: room.id } });
         };
 
-
         onMounted(() => {
             rooms.value.forEach(room => {
                 fetchRoomImages(room.id);
@@ -163,5 +168,10 @@ export default {
 .property-card:hover {
     background-color: rgba(0, 128, 0, 0.1);
     box-shadow: 0px 4px 10px rgba(0, 128, 0, 0.3);
+}
+
+.empty-card {
+    border: 2px dashed green;
+    text-align: center;
 }
 </style>
