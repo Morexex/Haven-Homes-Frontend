@@ -46,7 +46,7 @@
 
             <v-card-actions>
                 <v-btn color="red" @click="closeDialog">Cancel</v-btn>
-                <v-btn color="green" :loading="loading" @click="submitRoom">{{ formData.id ? 'Update' : 'Save'
+                <v-btn color="green" :loading="loading" @click="submitAmenity">{{ formData.id ? 'Update' : 'Save'
                     }}</v-btn>
             </v-card-actions>
         </v-card>
@@ -123,7 +123,7 @@ const fetchCategories = async () => {
     }
 };
 
-const submitRoom = async () => {
+const submitAmenity = async () => {
     if (!form.value) return;
 
     const { valid } = await form.value.validate();

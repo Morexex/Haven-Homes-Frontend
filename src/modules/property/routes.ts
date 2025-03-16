@@ -58,6 +58,12 @@ export default [
         props: true,
       },
       {
+        path: "/audit/agreement/:roomId",
+        name: "AuditAgreement",
+        component: () => import("@/modules/property/components/AuditAgreement.vue"),
+        props: true,
+      },
+      {
         path: '/view-user/:type',  // "type" can be "tenant" or "staff"
         name: 'ViewUserPage',
         component: () => import('@/modules/property/components/ViewUserDetails.vue'),

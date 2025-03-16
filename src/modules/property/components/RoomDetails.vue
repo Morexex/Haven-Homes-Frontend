@@ -19,8 +19,8 @@
                         <p><strong>Description:</strong> {{ room?.description }}</p>
                         <p>
                             <strong>Vacancy:</strong>
-                            <v-chip :color="room?.is_vacant ? 'green' : 'red'">
-                                {{ room?.is_vacant ? "Available" : "Occupied" }}
+                            <v-chip :color="room?.vacancy_status ? 'green' : 'red'">
+                                {{ room?.vacancy_status ? "Available" : "Occupied" }}
                             </v-chip>
                         </p>
                     </template>
@@ -71,7 +71,7 @@ interface Room {
     floor: string;
     quantity: number;
     description: string;
-    is_vacant: boolean;
+    vacancy_status: boolean;
 }
 
 interface RoomImage {
@@ -87,7 +87,7 @@ const fetchRoomDetails = async () => {
         const { data } = await apiClient.get(`/rooms/${route.params.id}`, {
             headers: { "Property-Code": authStore.propertyCode },
         });
-        room.value = data;
+        room.value = data.room_details;
 
         const imageResponse = await apiClient.get(`/rooms/${route.params.id}/images`, {
             headers: { "Property-Code": authStore.propertyCode },

@@ -24,12 +24,18 @@
           <v-icon color="blue" class="mr-2">mdi-shower</v-icon> Add Amenity
         </v-list-item-title>
       </v-list-item>
+      <v-list-item @click="handleButtonClick('add-room-charge')">
+        <v-list-item-title>
+          <v-icon color="purple" class="mr-2">mdi-cash</v-icon> Add Room Charge
+        </v-list-item-title>
+      </v-list-item>
     </v-list>
   </v-menu>
 
   <AddCategoryModal v-model="categoryDialog" @category-added="refreshCategories" />
   <AddRoomModal v-model="dialog" :room="selectedRoom" @room-added="refreshRooms" @room-updated="refreshRooms" />
   <AddAmenityModal v-model="amenityDialog" @amenity-added="refreshAmenities" />
+  <AddRoomChargesModal v-model="chargesDialog" @charges-added="refreshCharges" />
 
   <!-- Confirmation Dialog -->
   <ConfirmDialog v-model="showConfirmDialog" title="Confirm Deletion"
@@ -49,6 +55,7 @@ import AddRoomModal from "./AddRoomModal.vue";
 import TableComponent from "./TableComponent.vue";
 import ConfirmDialog from "./ConfirmationDialog.vue";
 import AddAmenityModal from "./AddAmenityModal.vue";
+import AddRoomChargesModal from "./AddRoomChargesModal.vue";
 
 interface Room {
   id: number;
@@ -64,6 +71,7 @@ const authStore = useAuthStore();
 const dialog = ref(false);
 const categoryDialog = ref(false);
 const amenityDialog = ref(false);
+const chargesDialog = ref(false);
 const rooms = ref<Room[]>([]);
 const toast = useToast();
 const loading = ref(false);
@@ -86,6 +94,7 @@ const handleButtonClick = (event: string) => {
   if (event === "add-room") dialog.value = true;
   else if (event === "add-category") categoryDialog.value = true;
   else if (event === "add-amenity") amenityDialog.value = true;
+  else if (event === "add-room-charge") chargesDialog.value = true;
 };
 
 const fetchRooms = async () => {
@@ -107,6 +116,17 @@ const fetchAmenities = async () => {
   if (!authStore.propertyCode) return;
   try {
     await apiClient.get("/amenities", {
+      headers: { "Property-Code": authStore.propertyCode },
+    });
+  } catch {
+    toast.error("Failed to load amenities.");
+  }
+};
+
+const fetchCharges = async () => {
+  if (!authStore.propertyCode) return;
+  try {
+    await apiClient.get("/charges", {
       headers: { "Property-Code": authStore.propertyCode },
     });
   } catch {
@@ -156,9 +176,18 @@ const addRoomImages = (room: Room) => {
   router.push({ name: "ManageRoomImages", params: { id: room.id } });
 };
 
+const auditAgreement = (room: Room) => {
+  if (!room.id) {
+    console.error("Error: Room ID is missing!");
+    return;
+  }
+  router.push({ name: "AuditAgreement", params: { roomId: room.id } });
+};
+
 const refreshCategories = fetchCategories;
 const refreshRooms = fetchRooms;
 const refreshAmenities = fetchAmenities;
+const refreshCharges = fetchCharges;
 
 const filteredRooms = computed(() =>
   rooms.value.filter((room) => room.label.toLowerCase().includes(searchQuery.value.toLowerCase()))
@@ -174,12 +203,14 @@ const actions = [
   { name: "delete", icon: "mdi-delete", color: "red", handler: confirmDelete }, // Call confirmation first
   { name: "view", icon: "mdi-eye", color: "green", handler: viewRoom },
   { name: "Add Images", icon: "mdi-camera", color: "teal", handler: addRoomImages },
+  { name: "Audit Agreement", icon: "mdi-file-document", color: "blue", handler: auditAgreement }
 ];
 
 onMounted(() => {
   fetchRooms();
   fetchCategories();
   fetchAmenities();
+  fetchCharges();
 });
 </script>
 
