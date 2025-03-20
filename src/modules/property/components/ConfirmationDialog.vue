@@ -6,7 +6,8 @@
         
         <v-card-title class="text-h5 font-weight-bold">{{ title }}</v-card-title>
         <v-card-text class="text-body-1 text-grey-darken-1">{{ message }}</v-card-text>
-        
+        <!-- introduce an optional textarea -->
+         <v-textarea v-if="showTextarea" v-model="textarea" :label="textareaLabel" variant="outlined"></v-textarea>
         <v-card-actions class="justify-center mt-4">
           <v-btn color="grey darken-2" variant="outlined" @click="handleCancel">
             <v-icon left>mdi-close</v-icon>
@@ -30,7 +31,11 @@
     message: { type: String, default: "Do you really want to perform this action?" },
     confirmText: { type: String, default: "Confirm" },
     cancelText: { type: String, default: "Cancel" },
+    showTextarea: { type: Boolean, default: false },
+    textareaLabel: { type: String, default: "Reason" },
   });
+
+  const textarea = ref("");
   
   const emit = defineEmits(["update:modelValue", "confirm", "cancel"]);
   const isOpen = ref(props.modelValue);
