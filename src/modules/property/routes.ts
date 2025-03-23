@@ -68,6 +68,12 @@ export default [
         name: 'ViewUserPage',
         component: () => import('@/modules/property/components/ViewUserDetails.vue'),
         props: (route: { params: { type: string } }) => ({ type: route.params.type }) // Allow route to pass type as a prop
+      },
+      {
+        path: '/more-details',  // "type" can be "tenant" or "staff"
+        name: 'MoreDetails',
+        component: () => import('@/modules/property/components/MoreDetails.vue'),
+        props: (route: { params: { type: string } }) => ({ type: route.params.type }) // Allow route to pass type as a prop
       }
     ],
   },

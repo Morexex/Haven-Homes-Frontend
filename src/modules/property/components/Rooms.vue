@@ -1,5 +1,6 @@
 <template>
-  <HeaderTitle title="Rooms" searchPlaceholder="Search Rooms" showSearch @update:search="updateSearchQuery" />
+  <HeaderTitle title="Rooms" searchPlaceholder="Search Rooms" showSearch @update:search="updateSearchQuery" :buttons="[{ text: 'More Details', event: 'more-details', color: 'green', icon: 'plus' }]"
+@button-click="moreAboutRoom"/>
 
   <TableComponent title="Rooms" :headers="headers" :items="filteredRooms" :actions="actions" :loading="loading" />
 
@@ -95,6 +96,10 @@ const handleButtonClick = (event: string) => {
   else if (event === "add-category") categoryDialog.value = true;
   else if (event === "add-amenity") amenityDialog.value = true;
   else if (event === "add-room-charge") chargesDialog.value = true;
+};
+
+const moreAboutRoom = (event: string) => {
+  if (event === "more-details") router.push({ name: "MoreDetails" });
 };
 
 const fetchRooms = async () => {

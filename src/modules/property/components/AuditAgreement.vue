@@ -23,8 +23,7 @@
                                 variant="outlined"></v-text-field>
                         </v-col>
                         <v-col cols="12" md="4">
-                            <v-text-field v-model="room.floor" label="Floor" readonly
-                                variant="outlined"></v-text-field>
+                            <v-text-field v-model="room.floor" label="Floor" readonly variant="outlined"></v-text-field>
                         </v-col>
                         <v-row justify="end">
                             <v-col cols="12" md="1">
@@ -34,6 +33,14 @@
                             </v-col>
                         </v-row>
                     </v-row>
+                    <!-- adda fancy section to write reasons for declining if the user switches no -->
+                    <v-row v-if="!roomAgreement" dense>
+                        <v-col cols="12">
+                            <v-textarea v-model="roomDeclineReason" label="Reason for Declining" variant="outlined"
+                                color="red" required></v-textarea>
+                        </v-col>
+                    </v-row>
+
                 </v-card-text>
             </v-card>
             <!-- Charges Breakdown -->
@@ -59,6 +66,12 @@
                                     <v-switch v-model="chargesAgreement[charge.charge_type || charge.id]"
                                         :color="chargesAgreement[charge.charge_type || charge.id] ? 'green' : 'grey'"
                                         @change="toggleChargeAgree(charge)" hide-details />
+                                </td>
+                                <td v-if="!chargesAgreement[charge.charge_type || charge.id]" class="pt-6">
+                                    <v-textarea v-model="charge.chargeDeclineReason" label="Reason for Declining"
+                                        variant="outlined" color="red" required
+                                        @input="appendReasonCharge(charge)">
+                                    </v-textarea>
                                 </td>
                             </tr>
                             <tr>
@@ -96,6 +109,11 @@
                                     <v-switch v-model="amenityAgreement[amenity.label || amenity.id]"
                                         :color="amenityAgreement[amenity.label || amenity.id] ? 'green' : 'grey'"
                                         @change="toggleAmenityAgree(amenity)" hide-details />
+                                </td>
+                                <td v-if="!amenityAgreement[amenity.label || amenity.id]" class="pt-6">
+                                    <v-textarea v-model="amenity.amenityDeclineReason" label="Reason for Declining"
+                                        variant="outlined" color="red" required
+                                        @input="appendReasonAmenity(amenity)"></v-textarea>
                                 </td>
                             </tr>
                         </tbody>
@@ -177,10 +195,7 @@
             <v-alert v-if="successMessage" type="success" class="mt-2">{{ successMessage }}</v-alert>
         </v-card>
     </v-container>
-    <!-- Confirmation Dialog -->
-    <ConfirmDialog v-model="showConfirmDialog" title="I dont agree with this term?"
-        message="Give a reason why you dissagree" :showTextarea="true"
-        textareaLabel="Your Reason" confirmText="Disagree" cancelText="Cancel" @confirm="handleConfirm" />
+
 </template>
 
 <script setup>
@@ -188,10 +203,11 @@ import { ref, onMounted, defineProps } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
 import { useRouter } from "vue-router";
-import ConfirmDialog from "./ConfirmationDialog.vue";
+import { useToast } from "vue-toastification";
 
 const authStore = useAuthStore();
 const props = defineProps(["roomId"]);
+const toast = useToast();
 
 const room = ref({
     user: { name: "", email: "", phone: "" }, // Ensure `user` exists by default
@@ -203,9 +219,9 @@ const successMessage = ref("");
 const errorMessage = ref("");
 const router = useRouter();
 const roomAgreement = ref(true);
+const roomDeclineReason = ref("");
 const amenityAgreement = ref({});
 const chargesAgreement = ref({});
-const showConfirmDialog = ref(false);
 
 // Function to format ISO date to YYYY-MM-DD
 const formatDate = (isoDate) => {
@@ -229,6 +245,44 @@ const getAmenityAgree = (amenity) => {
         return amenityAgreement.value[amenity.id] === "yes";
     }
 };
+
+const appendReasonCharge = (charge) => {
+    console.log("Before Append:", JSON.stringify(charge.chargeDeclineReason, null, 2));
+    if (room.value.agreements?.charges_agreement?.length) {
+        const existingCharge = room.value.agreements.charges_agreement.find(
+            c => c.id === charge.id || c.charge_type === charge.charge_type
+        );
+        if (existingCharge) {
+            existingCharge.reason = chargesAgreement.value[charge.charge_type || charge.id] === "yes" ? "agreed" : charge.chargeDeclineReason;
+        }
+    } else {
+        room.value.agreements.charges_agreement.push({
+            id: charge.id,
+            charge_type: charge.charge_type,
+            reason: charge.chargeDeclineReason,
+        });
+    }
+    console.log("After Append:", JSON.stringify(charge.chargeDeclineReason, null, 2));
+};
+
+const appendReasonAmenity = (amenity) => {
+    console.log("Before Append:", JSON.stringify(amenity.amenityDeclineReason, null, 2));
+    if (room.value.agreements?.amenities_agreement?.length) {
+        const existingAmenity = room.value.agreements.amenities_agreement.find(
+            a => a.id === amenity.id || a.label === amenity.label
+        );
+        if (existingAmenity) {
+            existingAmenity.reason = amenityAgreement.value[amenity.label || amenity.id] === "yes" ? "agreed" : amenity.amenityDeclineReason;
+        }
+    } else {
+        room.value.agreements.amenities_agreement.push({
+            id: amenity.id,
+            label: amenity.label,
+            reason: amenity.amenityDeclineReason,
+        });
+    }
+    console.log("After Append:", JSON.stringify(amenity.amenityDeclineReason, null, 2));
+}
 
 // Function to toggle charge agreement
 const toggleChargeAgree = (charge) => {
@@ -257,6 +311,7 @@ const toggleChargeAgree = (charge) => {
             description: charge.description,
             amount: charge.amount,
             agree: newAgreeValue,
+            reason: charge.chargeDeclineReason,
         });
     }
 
@@ -269,20 +324,11 @@ const toggleChargeAgree = (charge) => {
     console.log("After Toggle:", JSON.stringify(chargesAgreement.value, null, 2));
 };
 
-const handleConfirm = () => {
-    //if the user 
-};
-
 const toggleAmenityAgree = (amenity) => {
     console.log("Before Toggle:", JSON.stringify(amenityAgreement.value, null, 2));
 
     // Determine new "agree" state: toggle between "yes" and "no"
     const newAgreeValue = getAmenityAgree(amenity) ? "no" : "yes";
-
-    //if the user disagrees with the term, show the confirmation dialog
-    if (newAgreeValue === "yes") {
-        showConfirmDialog.value = true;
-    }
 
     // Ensure room agreements exist
     if (!room.value.agreements) {
@@ -306,6 +352,7 @@ const toggleAmenityAgree = (amenity) => {
             color: amenity.color,
             condition: amenity.condition,
             agree: newAgreeValue,
+            reason: amenity.amenityDeclineReason,
         });
     }
 
@@ -339,7 +386,8 @@ const fetchRoomDetails = async () => {
 
         // Check room agreement
         roomAgreement.value = agreements.room_agreement === 'yes' || !agreements.room_agreement;
-        
+        roomDeclineReason.value = agreements.room_decline_reason || "";
+
 
         // Set payment and tenancy start dates
         paymentDate.value = formatDate(agreements.payment_date);
@@ -412,6 +460,7 @@ const submitAgreement = async () => {
 
         // Append room agreement status
         formData.append("room_agreement", roomAgreement.value ? "yes" : "no");
+        formData.append("room_decline_reason", roomDeclineReason.value);
 
         // Append charges along with their agreement status
         room.value.room_charges.forEach((charge, index) => {
@@ -419,6 +468,7 @@ const submitAgreement = async () => {
             formData.append(`charges_agreement[${index}][description]`, charge.description);
             formData.append(`charges_agreement[${index}][amount]`, charge.amount);
             formData.append(`charges_agreement[${index}][agree]`, chargesAgreement.value[charge.charge_type || charge.id] ? "yes" : "no");
+            formData.append(`charges_agreement[${index}][reason]`, room.value.agreements.charges_agreement[index].chargeDeclineReason);
         });
 
         // Append amenities agreement status
@@ -429,6 +479,7 @@ const submitAgreement = async () => {
             formData.append(`amenities_agreement[${index}][color]`, amenity.color);
             formData.append(`amenities_agreement[${index}][condition]`, amenity.condition);
             formData.append(`amenities_agreement[${index}][agree]`, amenityAgreement.value[amenity.label || amenity.id] ? "yes" : "no");
+            formData.append(`amenities_agreement[${index}][reason]`, room.value.agreements.amenities_agreement[index].amenityDeclineReason);
         });
 
         // Append image files if available
@@ -455,17 +506,21 @@ const submitAgreement = async () => {
             formData.append('_method', 'PUT');
         }
 
-        // await apiClient[method](apiEndpoint, formData, {
-        //     headers: {
-        //         "Content-Type": "multipart/form-data",
-        //         "Property-Code": authStore.propertyCode,
-        //     },
-        // });
+        await apiClient[method](apiEndpoint, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+                "Property-Code": authStore.propertyCode,
+            },
+        });
 
         successMessage.value = "Agreement submitted successfully!";
-        // router.push("/agreements"); // Redirect after success
+        toast.success("Agreement submitted successfully!");
+        //refresh the window
+        window.location.reload();
+        
     } catch (error) {
         errorMessage.value = "Failed to submit agreement.";
+        toast.error("Failed to submit agreement.", error);
     } finally {
         loading.value = false;
     }
