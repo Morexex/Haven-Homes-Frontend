@@ -73,7 +73,12 @@ export default [
         path: '/more-details',  // "type" can be "tenant" or "staff"
         name: 'MoreDetails',
         component: () => import('@/modules/property/components/MoreDetails.vue'),
-        props: (route: { params: { type: string } }) => ({ type: route.params.type }) // Allow route to pass type as a prop
+      },
+      {
+        path: '/vacancies/:categoryId',  // "type" can be "tenant" or "staff"
+        name: 'Vacancies',
+        component: () => import('@/modules/property/components/Vacancies.vue'),
+        props: true,
       }
     ],
   },

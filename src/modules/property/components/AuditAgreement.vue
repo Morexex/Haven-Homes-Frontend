@@ -490,11 +490,6 @@ const submitAgreement = async () => {
             formData.append("id_back", idBack.value);
         }
 
-        // Log FormData entries
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}:`, value);
-        }
-
         // Determine if we should update or create a new agreement
         const agreementId = room.value.agreements?.id;
         let apiEndpoint = "/agreements";
