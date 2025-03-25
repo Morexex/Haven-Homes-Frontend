@@ -82,11 +82,13 @@ const showConfirmDialog = ref(false);
 
 const headers = [
   { text: "ID", value: "id", sortable: false },
-  { text: "Label", value: "label" },
+  { text: "Name", value: "label" },
+  { text: "Category", value: "category_name" },
   { text: "Floor", value: "floor" },
   { text: "Quantity", value: "quantity" },
   { text: "Description", value: "description" },
   { text: "Vacancy Status", value: "is_vacant", slot: true },
+  { text: "Created On", value: "formatted_created_at" },
 ];
 
 const updateSearchQuery = (query: string) => (searchQuery.value = query);
@@ -204,9 +206,9 @@ const viewRoom = (room: Room) => {
 
 // Update delete action to call confirmDelete first
 const actions = [
-  { name: "edit", icon: "mdi-pencil", color: "orange", handler: editRoom },
-  { name: "delete", icon: "mdi-delete", color: "red", handler: confirmDelete }, // Call confirmation first
-  { name: "view", icon: "mdi-eye", color: "green", handler: viewRoom },
+  { name: "Edit", icon: "mdi-pencil", color: "orange", handler: editRoom },
+  { name: "Delete", icon: "mdi-delete", color: "red", handler: confirmDelete }, // Call confirmation first
+  { name: "View", icon: "mdi-eye", color: "green", handler: viewRoom },
   { name: "Add Images", icon: "mdi-camera", color: "teal", handler: addRoomImages },
   { name: "Audit Agreement", icon: "mdi-file-document", color: "blue", handler: auditAgreement }
 ];

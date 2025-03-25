@@ -6,8 +6,23 @@
   
     <!-- Confirmation Dialog -->
     <ConfirmDialog v-model="showConfirmDialog" title="Confirm Deletion"
-      :message="`Are you sure you want to delete the room category ${selectedRoomCategory?.label}?`" confirmText="Delete"
+      :message="`Are you sure you want to delete the room category ${selectedRoomCategory?.label}? Remember, deleting this category will result in the deleting of the rooms under it!!`" confirmText="Delete"
       cancelText="Cancel" @confirm="deleteRoomCategory" />
+
+    <AddCategoryModal v-model="categoryDialog" :category="selectedRoomCategory" @category-added="refreshCategories" @category-updated="refreshCategories" />
+
+    <v-menu offset-y>
+      <template v-slot:activator="{ props }">
+        <v-btn v-bind="props" icon="mdi-plus" color="green" class="fab-button" />
+      </template>
+      <v-list>
+        <v-list-item @click="handleButtonClick('add-category')">
+          <v-list-item-title>
+            <v-icon color="orange" class="mr-2">mdi-shape</v-icon> Add Category
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </template>
   
   <script setup lang="ts">
@@ -19,6 +34,7 @@
   import HeaderTitle from "./HeaderTitle.vue";
   import TableComponent from "./TableComponent.vue";
   import ConfirmDialog from "./ConfirmationDialog.vue";
+  import AddCategoryModal from "./AddCategoryModal.vue";
   
 interface RoomCategory {
   id: number;
@@ -46,6 +62,7 @@ interface RoomCategory {
   const router = useRouter();
   const selectedRoomCategory = ref<RoomCategory | null>(null);
   const showConfirmDialog = ref(false);
+  const categoryDialog = ref(false);
   
   const headers = [
     { text: "ID", value: "id", sortable: false },
@@ -84,6 +101,13 @@ interface RoomCategory {
     selectedRoomCategory.value = roomCategory;
     showConfirmDialog.value = true;
   };
+
+  const handleButtonClick = (event: string) => {
+    if (event === "add-category") categoryDialog.value = true;
+  };
+
+  const refreshCategories = fetchRoomsCategory;
+
   
   // Only delete after confirmation
   const deleteRoomCategory = async () => {
@@ -108,11 +132,17 @@ interface RoomCategory {
   const viewRoomCategory = (roomCategory: RoomCategory) => {
     router.push({ name: "Vacancies", params: { categoryId: roomCategory.id } });
   };
+
+  const editRoomCategory = (roomCategory: RoomCategory) => {
+    selectedRoomCategory.value = roomCategory; // Set the selected category
+    categoryDialog.value = true; // Open the modal
+  };
   
   // Update delete action to call confirmDelete first
   const actions = [
-    { name: "delete", icon: "mdi-delete", color: "red", handler: confirmDelete }, // Call confirmation first
-    { name: "view", icon: "mdi-eye", color: "green", handler: viewRoomCategory },
+    { name: "Delete", icon: "mdi-delete", color: "red", handler: confirmDelete }, // Call confirmation first
+    { name: "View", icon: "mdi-eye", color: "green", handler: viewRoomCategory },
+    { name: "Edit", icon: "mdi-pencil", color: "orange", handler: editRoomCategory },
   ];
   
   onMounted(() => {

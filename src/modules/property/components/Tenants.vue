@@ -145,9 +145,9 @@ const toggleTenantStatus = async () => {
 };
 
 const actions = [
-    { name: "edit", icon: "mdi-pencil", color: "orange", handler: editTenant },
-    { name: "toggle-status", icon: "mdi-key", color: "red", handler: confirmDeactivation },
-    { name: "view", icon: "mdi-eye", color: "green", handler: viewTenant },
+    { name: "Edit", icon: "mdi-pencil", color: "orange", handler: editTenant },
+    { name: "Change status", icon: "mdi-key", color: "red", handler: confirmDeactivation },
+    { name: "View", icon: "mdi-eye", color: "green", handler: viewTenant },
 ];
 
 const refreshTenants = () => {
