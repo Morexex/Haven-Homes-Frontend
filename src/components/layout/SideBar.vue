@@ -57,7 +57,7 @@ const authStore = useAuthStore();
 
 const menuItems = [
   { label: "DashBoard", icon: "mdi-view-dashboard", route: "/dashboard" },
-  { label: "Tenants", icon: "mdi-account-group", route: "/tenants" },
+  // { label: "Tenants", icon: "mdi-account-group", route: "/tenants" },
   { label: "Properties", icon: "mdi-office-building", route: "/properties" },
   { label: "Comms", icon: "mdi-message-text", route: "/communication" },
   { label: "Payments", icon: "mdi-cash-multiple", route: "/payments" },

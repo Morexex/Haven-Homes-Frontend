@@ -60,26 +60,31 @@ export default [
       {
         path: "/audit/agreement/:roomId",
         name: "AuditAgreement",
-        component: () => import("@/modules/property/components/AuditAgreement.vue"),
+        component: () =>
+          import("@/modules/property/components/AuditAgreement.vue"),
         props: true,
       },
       {
-        path: '/view-user/:type',  // "type" can be "tenant" or "staff"
-        name: 'ViewUserPage',
-        component: () => import('@/modules/property/components/ViewUserDetails.vue'),
-        props: (route: { params: { type: string } }) => ({ type: route.params.type }) // Allow route to pass type as a prop
+        path: "/view-user/:type", // "type" can be "tenant" or "staff"
+        name: "ViewUserPage",
+        component: () =>
+          import("@/modules/property/components/ViewUserDetails.vue"),
+        props: (route: { params: { type: string } }) => ({
+          type: route.params.type,
+        }), // Allow route to pass type as a prop
       },
       {
-        path: '/more-details',  // "type" can be "tenant" or "staff"
-        name: 'MoreDetails',
-        component: () => import('@/modules/property/components/MoreDetails.vue'),
+        path: "/more-details", // "type" can be "tenant" or "staff"
+        name: "MoreDetails",
+        component: () =>
+          import("@/modules/property/components/MoreDetails.vue"),
       },
       {
-        path: '/vacancies/:categoryId',  // "type" can be "tenant" or "staff"
-        name: 'Vacancies',
-        component: () => import('@/modules/property/components/Vacancies.vue'),
+        path: "/vacancies/:categoryId", // "type" can be "tenant" or "staff"
+        name: "Vacancies",
+        component: () => import("@/modules/property/components/Vacancies.vue"),
         props: true,
-      }
+      },
     ],
   },
 ];

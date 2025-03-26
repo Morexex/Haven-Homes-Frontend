@@ -2,9 +2,9 @@ import { createRouter, createWebHistory } from "vue-router";
 import type { RouteRecordRaw } from "vue-router"; // ✅ Use type-only import
 
 import HomeView from "../views/HomeView.vue";
-import tenantRoutes from "@/modules/tenants/routes";
 import propertyRoutes from "@/modules/property/routes";
 import dashboardRoutes from "@/modules/dashboard/routes";
+import commsRoutes from "@/modules/communication/routes";
 import DefaultLayout from "@/components/layout/DefaultLayout.vue";
 import { useAuthStore } from "@/stores/authStore";
 
@@ -20,9 +20,9 @@ const routes: RouteRecordRaw[] = [
         component: HomeView,
         meta: { requiresAuth: true },
       },
-      ...tenantRoutes,
       ...dashboardRoutes,
       ...propertyRoutes,
+      ...commsRoutes,
     ],
   },
   {

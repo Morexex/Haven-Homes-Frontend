@@ -17,7 +17,7 @@
     width: calc(100vw - 190px);
     margin-left: 155px;
     margin-bottom: 40px;
-    min-height: 300px;
+    min-height: 80vh;
     max-height: auto;
   }
   </style>
