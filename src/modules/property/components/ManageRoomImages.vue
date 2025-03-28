@@ -69,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, defineProps, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import apiClient from "@/services/apiClient";
 import { useToast } from "vue-toastification";

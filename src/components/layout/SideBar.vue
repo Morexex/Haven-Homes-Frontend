@@ -42,7 +42,6 @@ import SimpleBar from 'simplebar';
 import 'simplebar/dist/simplebar.css';
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
-import { nextTick } from "vue";
 
 onMounted(() => {
   if (!document.querySelector('.v-navigation-drawer').hasAttribute('data-simplebar')) {
@@ -69,13 +68,18 @@ const menuItems = [
 
 const logout = async () => {
   try {
-    await apiClient.post("/logout"); // Send request to logout
+    await apiClient.post("/logout", {}, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`, // Ensure the token is sent
+      },
+    });
 
     // Clear the authentication data
     authStore.clearAuthData();
 
-    // Directly reload the page
-    window.location.href = "/login"; // Redirect and force a full page reload
+    // Force a full page reload to "/login"
+    window.location.replace("/login"); // More reliable than href
+    window.location.reload(); // Ensures complete refresh
   } catch (error) {
     console.error("Logout failed:", error);
   }

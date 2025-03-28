@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref } from "vue";
+import {defineEmits, ref } from "vue";
 
 const props = defineProps({
 modelValue: Boolean, // Controls dialog visibility

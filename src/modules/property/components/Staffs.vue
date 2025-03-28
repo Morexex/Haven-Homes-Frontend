@@ -18,10 +18,10 @@ import { ref, computed, onMounted } from "vue";
 import { useToast } from "vue-toastification";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
-import HeaderTitle from "./HeaderTitle.vue";
+import HeaderTitle from "@/components/HeaderTitle.vue";
 import AddStaffsModal from "./AddStaffsModal.vue";
-import TableComponent from "./TableComponent.vue";
-import ConfirmDialog from "./ConfirmationDialog.vue";
+import TableComponent from "@/components/TableComponent.vue";
+import ConfirmDialog from "@/components/ConfirmationDialog.vue";
 import { useRouter } from "vue-router";
 
 interface Staff {

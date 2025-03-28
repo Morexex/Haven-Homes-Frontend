@@ -34,6 +34,13 @@ export default [
           import("@/modules/communication/pages/ViewComplaints.vue"),
         props: true,
       },
+      {
+        path: "complaint-thread/:complaintId",
+        name: "ComplaintThread",
+        component: () =>
+          import("@/modules/communication/pages/ComplaintThread.vue"),
+        props: true,
+      },
     ],
   },
   {

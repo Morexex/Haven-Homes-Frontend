@@ -31,6 +31,8 @@
         </v-btn>
       </v-col>
     </v-row>
+    <!-- introduce a divider to sepatate the main section -->
+    <v-divider class="mb-4" color="green" thickness="4"></v-divider>
   </template>
   
   <script lang="ts">

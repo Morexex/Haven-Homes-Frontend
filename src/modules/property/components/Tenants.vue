@@ -21,10 +21,10 @@ import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
-import HeaderTitle from "./HeaderTitle.vue";
+import HeaderTitle from "@/components/HeaderTitle.vue";
 import AddTenantsModal from "./AddTenantsModal.vue";
-import TableComponent from "./TableComponent.vue";
-import ConfirmDialog from "./ConfirmationDialog.vue";
+import TableComponent from "@/components/TableComponent.vue";
+import ConfirmDialog from "@/components/ConfirmationDialog.vue";
 
 interface Tenant {
     id: number;

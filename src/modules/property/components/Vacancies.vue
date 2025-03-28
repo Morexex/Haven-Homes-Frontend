@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, defineProps } from "vue";
+import { ref, computed, onMounted } from "vue";
 import apiClient from "@/services/apiClient";
 import { useToast } from "vue-toastification";
 import { useAuthStore } from "@/stores/authStore";

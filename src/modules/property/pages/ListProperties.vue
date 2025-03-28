@@ -45,7 +45,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
-import HeaderTitle from "../components/HeaderTitle.vue";
+import HeaderTitle from "@/components/HeaderTitle.vue";
 import RegisterPropertyModal from "../components/RegisterPropertyModal.vue";
 import LoginModal from "../components/LoginModal.vue";
 import { useToast } from "vue-toastification";

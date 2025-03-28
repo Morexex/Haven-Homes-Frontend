@@ -199,7 +199,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps } from "vue";
+import { ref, onMounted } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
 import { useRouter } from "vue-router";
