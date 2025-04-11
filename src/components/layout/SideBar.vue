@@ -9,11 +9,11 @@
     </v-list>
     <v-list class="sidebar-menu">
       <v-list-item v-for="(item, index) in menuItems" :key="index" class="sidebar-item" @click="handleNavigation(item)">
-        <v-card flat class="menu-container" :class="{ 'active-menu': selectedModule === item.route }">
-          <v-icon size="30" class="menu-icon" :class="{ 'active-icon': selectedModule === item.route }">
+        <v-card flat class="menu-container" :class="{ 'active-menu': route.path.startsWith(item.route) }">
+          <v-icon size="30" class="menu-icon" :class="{ 'active-icon': route.path.startsWith(item.route) }">
             {{ item.icon }}
           </v-icon>
-          <span class="menu-text" :class="{ 'active-text': selectedModule === item.route }">
+          <span class="menu-text" :class="{ 'active-text': route.path.startsWith(item.route) }">
             {{ item.label }}
           </span>
         </v-card>
@@ -34,30 +34,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import SimpleBar from 'simplebar';
-import 'simplebar/dist/simplebar.css';
+import SimpleBar from "simplebar";
+import "simplebar/dist/simplebar.css";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
 
-onMounted(() => {
-  if (!document.querySelector('.v-navigation-drawer').hasAttribute('data-simplebar')) {
-    new SimpleBar(document.querySelector('.v-navigation-drawer'));
-  }
-});
-
-
 const route = useRoute();
 const router = useRouter();
-const selectedModule = ref(route.path);
+const selectedModule = ref(route.path); // Initially set to the current route
 const authStore = useAuthStore();
 const userRole = computed(() => authStore.user?.role);
 
+onMounted(() => {
+  if (!document.querySelector(".v-navigation-drawer").hasAttribute("data-simplebar")) {
+    new SimpleBar(document.querySelector(".v-navigation-drawer"));
+  }
+});
+
+// Watch for route changes and update selectedModule
+watch(() => route.path, (newPath) => {
+  selectedModule.value = newPath;
+});
+
 const menuItems = [
   { label: "DashBoard", icon: "mdi-view-dashboard", route: "/dashboard" },
-  // { label: "Tenants", icon: "mdi-account-group", route: "/tenants" },
-  { label: "Properties", icon: "mdi-office-building", route: "/properties" },
+  { label: "property", icon: "mdi-office-building", route: "/property" },
   { label: "Comms", icon: "mdi-message-text", route: "/communication" },
   { label: "Payments", icon: "mdi-cash-multiple", route: "/payments" },
   { label: "Support", icon: "mdi-lifebuoy", route: "/support" },
@@ -65,15 +68,11 @@ const menuItems = [
   { label: "Permissions", icon: "mdi-shield-key", route: "/permissions" },
   { label: "Settings", icon: "mdi-cog", route: "/settings" },
 ];
-// Handle navigation logic
+
 const handleNavigation = (item) => {
-  if (item.label === "Properties" && userRole.value === "user") {
-    console.log("Property Code:", authStore.propertyCode);
+  if (item.label === "property" && userRole.value === "user") {
     if (authStore.propertyCode) {
-      router.push({
-        name: "view-property",
-        params: { property_code: authStore.propertyCode },
-      });
+      router.push({ name: "view-property", params: { property_code: authStore.propertyCode } });
     } else {
       console.error("No property code found in store.");
     }
@@ -84,22 +83,15 @@ const handleNavigation = (item) => {
 
 const logout = async () => {
   try {
-    await apiClient.post("/logout", {}, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`, // Ensure the token is sent
-      },
-    });
-
-    // Clear the authentication data
+    await apiClient.post("/logout", {}, { headers: { Authorization: `Bearer ${authStore.token}` } });
     authStore.clearAuthData();
-
-    // Force a full page reload to "/login"
-    window.location.replace("/login"); // More reliable than href
-    window.location.reload(); // Ensures complete refresh
+    window.location.replace("/login");
+    window.location.reload();
   } catch (error) {
     console.error("Logout failed:", error);
   }
 };
+
 
 
 </script>

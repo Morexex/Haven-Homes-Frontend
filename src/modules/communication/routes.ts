@@ -13,7 +13,7 @@ export default [
     ],
   },
   {
-    path: "/notices", // Separate route for viewing notices
+    path: "/communication", // Separate route for viewing notices
     children: [
       {
         path: "my-notices",
@@ -25,7 +25,7 @@ export default [
     ],
   },
   {
-    path: "/complaints", // Separate route for viewing complaints
+    path: "/communication", // Separate route for viewing complaints
     children: [
       {
         path: "my-complaints",
@@ -44,7 +44,7 @@ export default [
     ],
   },
   {
-    path: "/vacation", // Separate route for viewing vacation
+    path: "/communication", // Separate route for viewing vacation
     children: [
       {
         path: "apply-vacation",
@@ -56,7 +56,7 @@ export default [
     ],
   },
   {
-    path: "/bulk-communication", // Separate route for viewing bulk communication
+    path: "/communication", // Separate route for viewing bulk communication
     children: [
       {
         path: "comms",

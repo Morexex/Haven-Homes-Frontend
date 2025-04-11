@@ -34,10 +34,10 @@ const router = useRouter();
 
 // Define the list of pages dynamically
 const pages = [
-  { title: "Notices", icon: "mdi-message-text", route: "/notices/my-notices" },
-  { title: "Complaints", icon: "mdi-alert-circle", route: "/complaints/my-complaints" },
-  { title: "Apply Vacation", icon: "mdi-home", route: "/vacation/apply-vacation" },
-  { title: "Bulk Communication", icon: "mdi-email-multiple", route: "/bulk-communication/comms" },
+  { title: "Notices", icon: "mdi-message-text", route: "/communication/my-notices" },
+  { title: "Complaints", icon: "mdi-alert-circle", route: "/communication/my-complaints" },
+  { title: "Apply Vacation", icon: "mdi-home", route: "/communication/apply-vacation" },
+  { title: "Bulk Communication", icon: "mdi-email-multiple", route: "/communication/comms" },
 ];
 
 const handleSectionSelection = (route: string) => {

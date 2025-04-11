@@ -1,6 +1,6 @@
 export default [
   {
-    path: "/properties",
+    path: "/property",
     children: [
       {
         path: "",
