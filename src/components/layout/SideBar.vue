@@ -8,8 +8,7 @@
       </v-list-item>
     </v-list>
     <v-list class="sidebar-menu">
-      <v-list-item v-for="(item, index) in menuItems" :key="index" link :to="item.route" class="sidebar-item"
-        @click="selectedModule = item.route">
+      <v-list-item v-for="(item, index) in menuItems" :key="index" class="sidebar-item" @click="handleNavigation(item)">
         <v-card flat class="menu-container" :class="{ 'active-menu': selectedModule === item.route }">
           <v-icon size="30" class="menu-icon" :class="{ 'active-icon': selectedModule === item.route }">
             {{ item.icon }}
@@ -35,9 +34,8 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRoute } from "vue-router";
-import { onMounted } from 'vue';
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import SimpleBar from 'simplebar';
 import 'simplebar/dist/simplebar.css';
 import { useAuthStore } from "@/stores/authStore";
@@ -51,8 +49,10 @@ onMounted(() => {
 
 
 const route = useRoute();
+const router = useRouter();
 const selectedModule = ref(route.path);
 const authStore = useAuthStore();
+const userRole = computed(() => authStore.user?.role);
 
 const menuItems = [
   { label: "DashBoard", icon: "mdi-view-dashboard", route: "/dashboard" },
@@ -65,6 +65,22 @@ const menuItems = [
   { label: "Permissions", icon: "mdi-shield-key", route: "/permissions" },
   { label: "Settings", icon: "mdi-cog", route: "/settings" },
 ];
+// Handle navigation logic
+const handleNavigation = (item) => {
+  if (item.label === "Properties" && userRole.value === "user") {
+    console.log("Property Code:", authStore.propertyCode);
+    if (authStore.propertyCode) {
+      router.push({
+        name: "view-property",
+        params: { property_code: authStore.propertyCode },
+      });
+    } else {
+      console.error("No property code found in store.");
+    }
+  } else {
+    router.push(item.route);
+  }
+};
 
 const logout = async () => {
   try {

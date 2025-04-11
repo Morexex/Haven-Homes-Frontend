@@ -31,9 +31,9 @@ const handleSubmit = async () => {
     // Store in Pinia
     authStore.setAuthData(token, user, form.value.property_code);
 
-    toast.success("Login Successful!", { timeout: 3000 });
+    toast.success(`Login Successful! Welcome Back: ${user.name}`, { timeout: 3000 });
 
-    // ✅ Ensure redirectTo is always a string
+    // ✅ Ensure redirectTo is always a string 
     let redirectTo = router.currentRoute.value.query.redirect;
     if (Array.isArray(redirectTo)) {
       redirectTo = redirectTo[0]; // Take the first value if it's an array

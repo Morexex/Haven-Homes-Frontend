@@ -70,12 +70,17 @@ export default {
     const toast = useToast();
     const router = useRouter();
     const authStore = useAuthStore();
+    const token = authStore.token;
 
     // Fetch Properties from API
     const fetchProperties = async () => {
       loading.value = true;
       try {
-        const response = await apiClient.get<Property[]>("/properties");
+        const response = await apiClient.get<Property[]>("/properties", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         properties.value = response.data;
       } catch (error) {
         if (error instanceof AxiosError && error.response) {

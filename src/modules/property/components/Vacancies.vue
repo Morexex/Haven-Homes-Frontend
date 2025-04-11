@@ -30,8 +30,8 @@
               </v-col>
               <v-col cols="7">
                 <div>No Of Rooms: {{ room.quantity }}</div>
-                <v-chip :color="room.is_vacant ? 'green' : 'orange'" label>
-                  {{ room.is_vacant ? 'Vacant' : 'Occupied' }}
+                <v-chip :color="room.is_vacant === 'Vacant' ? 'green' : 'orange'" label>
+                  {{ room.is_vacant }}
                 </v-chip>
               </v-col>
             </v-row>
@@ -65,7 +65,7 @@ interface Room {
   label: string;
   floor: string;
   quantity: number;
-  is_vacant: boolean;
+  is_vacant: string;
 }
 
 const fetchRooms = async () => {

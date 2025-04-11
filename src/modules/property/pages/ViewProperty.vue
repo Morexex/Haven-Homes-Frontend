@@ -24,23 +24,33 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, computed } from "vue";
 import PropertyDetails from "@/modules/property/components/PropertyDetails.vue";
 import Vacancies from "@/modules/property/components/Vacancies.vue";
 import Rooms from "@/modules/property/components/Rooms.vue";
 import Tenants from "@/modules/property/components/Tenants.vue";
 import Staff from "@/modules/property/components/Staffs.vue";
+import { useAuthStore } from "@/stores/authStore";
 
 export default defineComponent({
   setup() {
     const tab = ref("property");
-    const items = [
+    const authStore = useAuthStore(); // Get authentication store
+    const userRole = computed(() => authStore.user?.role); // Access the stored user role
+    const allItems = [
       { label: "Property", value: "property", component: PropertyDetails },
       { label: "Vacancies", value: "vacancies", component: Vacancies },
       { label: "Rooms", value: "rooms", component: Rooms },
       { label: "Tenants", value: "tenants", component: Tenants },
       { label: "Staff", value: "staff", component: Staff },
     ];
+
+    // Filter out "Property" tab if the user is a "user"
+    const items = computed(() => {
+      return userRole.value === "user"
+        ? allItems.filter(item => item.value !== "property")
+        : allItems;
+    });
 
     return {
       tab,
