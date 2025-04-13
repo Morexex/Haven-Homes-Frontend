@@ -1,4 +1,12 @@
 <template>
+  <!-- Close icon -->
+  <v-row class="mb-4">
+    <v-col cols="12" class="d-flex justify-end">
+        <v-btn icon @click="$router.back()">
+            <v-icon>mdi-close</v-icon>
+        </v-btn>
+    </v-col>
+</v-row>
     <HeaderTitle title="Complaints" searchPlaceholder="Search Complaints" showSearch @update:search="updateSearchQuery" :buttons="[{ text: 'File Complaint', event: 'complaint-thread', color: 'green', icon: 'plus' }]"
   @button-click="fileComplaint"/>
   
@@ -49,7 +57,7 @@
     { text: "Category", value: "category" },
     { text: "Priority", value: "priority" },
     { text: "Status", value: "status" },
-    { text: "Complainant", value: "complainant" },
+    { text: "Complainant", value: "complainant_name" },
     { text: "Incident Date", value: "incident_date" },
     { text: "Assigned To", value: "assigned_to" },
   ];
@@ -67,7 +75,7 @@
       const { data } = await apiClient.get("/complaints", {
         headers: { "Property-Code": authStore.propertyCode },
       });
-      complaints.value = data;
+      complaints.value = data.data;
     } catch {
       toast.error("Failed to load complaints.");
     } finally {
@@ -104,7 +112,7 @@
   );
   
   const viewComplaint = (complaint: Complaint) => {
-    router.push({ name: "ComplaintThread", params: { id: complaint.id } });
+    router.push({ name: "ComplaintThread", params: { complaintId: complaint.id } });
   };
   
   // Update delete action to call confirmDelete first
