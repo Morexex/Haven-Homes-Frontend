@@ -112,7 +112,7 @@
                 <v-row align="center" class="chat-input px-4 py-2"
                     style="background-color: #f9f9f9; border-radius: 12px;">
                     <v-col cols="12" md="8">
-                        <v-text-field v-model="newMessage" placeholder="Type your message..." dense hide-details
+                        <v-text-field :disabled="isReadonly" v-model="newMessage" :placeholder="isReadonly ? 'This conflict has already been resolved. Create a new one if thi\'s a new conflict.' : 'Type your message...'" dense hide-details
                             variant="outlined" class="message-input" rounded append-inner-icon="mdi-emoticon-outline" />
                     </v-col>
 
@@ -120,7 +120,7 @@
                     <v-col cols="6" md="1" class="d-flex justify-center">
                         <v-tooltip text="Attach Image">
                             <template #activator="{ props }">
-                                <v-btn v-bind="props" icon color="blue-grey" @click="triggerFileUpload">
+                                <v-btn :disabled="isReadonly" v-bind="props" icon color="blue-grey" @click="triggerFileUpload">
                                     <v-icon>mdi-image</v-icon>
                                 </v-btn>
                             </template>
@@ -133,7 +133,7 @@
                     <v-col cols="6" md="1" class="d-flex justify-center">
                         <v-tooltip text="Send Message">
                             <template #activator="{ props }">
-                                <v-btn v-bind="props" icon color="green" @click="sendOrUpdateMessage">
+                                <v-btn :disabled="isReadonly" v-bind="props" icon color="green" @click="sendOrUpdateMessage">
                                     <v-icon>mdi-send</v-icon>
                                 </v-btn>
                             </template>
@@ -145,7 +145,7 @@
                         <v-card elevation="2" class="pa-2" style="max-width: 200px; position: relative;">
                             <v-img :src="selectedImagePreview" max-height="150" class="rounded-lg" />
 
-                            <v-btn icon color="red" @click="clearSelectedFile" size="small" class="position-absolute"
+                            <v-btn :disabled="isReadonly" icon color="red" @click="clearSelectedFile" size="small" class="position-absolute"
                                 style="top: -10px; right: -10px;">
                                 <v-icon small>mdi-close</v-icon>
                             </v-btn>
@@ -186,6 +186,7 @@ const route = useRoute();
 const chatContainer = ref<any>(null);
 const selectedImageFile = ref<File | null>(null);
 const selectedImagePreview = ref<string | null>(null);
+const isReadonly = computed(() => complaint.value.status === "Resolved");
 
 
 function clearSelectedFile() {
@@ -269,6 +270,7 @@ const props = defineProps<{
 
 
 const sendOrUpdateMessage = async () => {
+    if (isReadonly.value) return;
     if (!newMessage.value.trim() && !selectedImageFile.value) return;
 
     const formData = new FormData();
@@ -367,6 +369,7 @@ const complaintFields = computed(() => ({
     Category: { title: "Category", value: complaint.value.category },
     Priority: { title: "Priority", value: complaint.value.priority },
     IncidentDate: { title: "Incident Date", value: formatDate(complaint.value.incident_date) },
+    Status: { title: "Status", value: complaint.value.status },
 }));
 
 onMounted(() => {
