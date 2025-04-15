@@ -35,6 +35,9 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <!-- Review Service Dialog -->
+  <ReviewService :complaintId="complaintId" :dialog="showDialog" @close="showDialog = false" />
+
 </template>
 
 <script setup lang="ts">
@@ -46,6 +49,7 @@ import apiClient from "@/services/apiClient";
 import HeaderTitle from "@/components/HeaderTitle.vue";
 import TableComponent from "@/components/TableComponent.vue";
 import ConfirmDialog from "@/components/ConfirmationDialog.vue";
+import ReviewService from "@/modules/communication/components/ReviewService.vue";
 
 interface Complaint {
   id: number;
@@ -57,6 +61,7 @@ interface Complaint {
   complainant_name: string;
   incident_date: string;
   assignee_name: string;
+  is_reviewed: boolean;
 }
 
 const searchQuery = ref("");
@@ -77,6 +82,12 @@ const assigneeName = computed({
     }
   }
 });
+const complaintId = computed(() => {
+  const id = selectedComplaint.value?.id;
+  return id != null ? String(id) : "";
+});
+
+const showDialog = ref(false);
 
 const headers = [
   { text: "ID", value: "id", sortable: false },
@@ -203,8 +214,14 @@ const PromptAssignModal = (complaint: Complaint) => {
   fetchStaffs();
 };
 
-const ReviewService = (complaint: Complaint) => {
-  router.push({ name: "ReviewService", params: { complaintId: complaint.id } });
+const RateService = (complaint: Complaint) => {
+  if(complaint.is_reviewed) {
+    toast.error("You have already rated this service.");
+    return;
+  }
+  //call dialog to review service from ReviewService Component
+  selectedComplaint.value = complaint;
+  showDialog.value = true;
 };
 
 // Update delete action to call confirmDelete first
@@ -212,7 +229,7 @@ const actions = [
   { name: "Delete", icon: "mdi-delete", color: "red", handler: confirmDelete },
   { name: "View", icon: "mdi-eye", color: "green", handler: viewComplaint },
   { name: "Mark As Resolved", icon: "mdi-check", color: "blue", handler: ResolveComplaint },
-  { name: "Review Service", icon: "mdi-star", color: "yellow", handler: ReviewService },
+  { name: "Rate Service", icon: "mdi-star", color: "yellow", handler: RateService },
   { name: "Assign Complaint", icon: "mdi-account-check", color: "purple", handler: PromptAssignModal },
 ];
 
