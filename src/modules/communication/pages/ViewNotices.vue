@@ -17,7 +17,9 @@
                 :class="{ 'border-right': index < statuses.length - 1 }">
                 <v-card :color="status.color" class="pa-3 fill-height" elevation="6" :data-status="status.value">
                     <h3 class="text-white text-center">{{ status.label }}</h3>
-                    <draggable v-model="groupedNotices[status.value]" group="notices" @end="onDragEnd" item-key="id">
+
+                    <draggable v-model="groupedNotices[status.value]" group="notices"
+                        @change="(event) => onDragChange(event, status.value)" item-key="id">
                         <template #item="{ element }">
                             <v-card class="my-3 transition-swing" elevation="4">
                                 <v-card-title class="d-flex justify-space-between">
@@ -83,32 +85,22 @@ const groupedNotices = ref<Record<string, Notice[]>>({
 });
 
 
-const onDragEnd = async (event: any) => {
-    const { to, item } = event;
-    const newStatus = to.closest(".v-card")?.getAttribute("data-status");
-    if (!newStatus) return;
+const onDragChange = async (event: any, newStatus: string) => {
+    const { added } = event;
 
-    // Update the status in the item itself
+    if (!added || !added.element || !newStatus) {
+        console.warn("Missing status or item", { added, newStatus });
+        return;
+    }
+
+    const item = added.element;
+
     item.status = newStatus;
 
     try {
-        const onDragEnd = async (event: any) => {
-            const { to, notice } = event;
-            const newStatus = to.closest(".v-card")?.getAttribute("data-status");
-            if (!newStatus) return;
-
-            // Update the status in the item itself
-            notice.status = newStatus;
-
-            try {
-                await apiClient.put(`/notices/${item.id}`, { status: newStatus }, {
-                    headers: { "Property-Code": authStore.propertyCode },
-                });
-                toast.success(`Notice moved to ${newStatus} successfully!`);
-            } catch (error) {
-                toast.error("Failed to update notice status.");
-            }
-        };
+        await apiClient.put(`/notices/${item.id}`, { status: newStatus }, {
+            headers: { "Property-Code": authStore.propertyCode },
+        });
         toast.success(`Notice moved to ${newStatus} successfully!`);
     } catch (error) {
         toast.error("Failed to update notice status.");
