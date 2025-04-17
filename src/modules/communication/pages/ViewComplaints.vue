@@ -2,7 +2,7 @@
   <!-- Close icon -->
   <v-row class="mb-4">
     <v-col cols="12" class="d-flex justify-end">
-      <v-btn icon @click="$router.back()">
+      <v-btn icon @click="router.back()">
         <v-icon>mdi-close</v-icon>
       </v-btn>
     </v-col>

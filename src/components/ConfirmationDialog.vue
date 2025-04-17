@@ -22,7 +22,7 @@
           {{ cancelText }}
         </v-btn>
         <v-btn color="red" dark @click="handleConfirm">
-          <v-icon left>mdi-delete</v-icon>
+          <v-icon left>mdi-check</v-icon>
           {{ confirmText }}
         </v-btn>
       </v-card-actions>

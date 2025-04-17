@@ -50,7 +50,7 @@ export default [
         path: "apply-vacation",
         name: "apply-vacation",
         component: () =>
-          import("@/modules/communication/pages/ApplyVacation.vue"),
+          import("@/modules/communication/pages/VacationHistory.vue"),
         props: true,
       },
     ],

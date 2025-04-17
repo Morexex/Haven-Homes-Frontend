@@ -4,7 +4,7 @@
             <!-- Close icon -->
             <v-row class="mb-4">
                 <v-col cols="12" class="d-flex justify-end">
-                    <v-btn icon @click="$router.back()">
+                    <v-btn icon @click="router.back()">
                         <v-icon>mdi-close</v-icon>
                     </v-btn>
                 </v-col>
@@ -162,7 +162,7 @@ import { ref, onMounted, computed, watch, nextTick } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 import apiClient from "@/services/apiClient";
 import { useToast } from "vue-toastification";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 const authStore = useAuthStore();
 const toast = useToast();
@@ -183,6 +183,7 @@ const complaintForm = ref({
     evidence_url: null,
 });
 const route = useRoute();
+const router = useRouter();
 const chatContainer = ref<any>(null);
 const selectedImageFile = ref<File | null>(null);
 const selectedImagePreview = ref<string | null>(null);
